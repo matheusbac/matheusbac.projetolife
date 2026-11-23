@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FASE 2 — HUD DA SOBERANIA</title>
+
+  <!-- Fontes: Inter (UI limpa) e JetBrains Mono (telemetria e métricas) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            cockpit: {
+              bg: '#0A0B0E',
+              card: '#12151C',
+              elevated: '#171B24',
+              border: '#1F2430',
+              borderLight: '#2A3142',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Estilização minimalista para scrollbars e efeitos sutis de HUD */
+    body {
+      background-color: #0A0B0E;
+      color: #E5E7EB;
+      background-image:
+        radial-gradient(circle at 15% 0%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 85% 0%, rgba(245, 158, 11, 0.04) 0%, transparent 40%);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0A0B0E;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1F2430;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2E3648;
+    }
+
+    /* Animação sutil para notificações Toast */
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .toast-enter {
+      animation: toastIn 0.22s ease-out forwards;
+    }
+
+    /* Barra de progresso com transição fluida */
+    .bar-fill {
+      transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen font-sans text-gray-200 selection:bg-emerald-500/20 selection:text-emerald-300 overflow-x-hidden">
+
+  <!-- Container Principal -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-6">
+
+    <!-- ========================================================= -->
+    <!-- 1. HEADER / HUD DO JOGADOR                                -->
+    <!-- ========================================================= -->
+    <header class="bg-cockpit-card border border-cockpit-border rounded-2xl p-4 sm:p-6 shadow-2xl shadow-black/50">
+      <!-- Linha Superior: Fases + Ações Globais -->
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-5 border-b border-cockpit-border">
+        <div class="space-y-2.5">
+          <!-- Indicador de Fases -->
+          <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase tracking-wider">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              FASE 1: CONCLUÍDA (Base &amp; Caixa)
+            </span>
+            <span class="text-gray-600 hidden sm:inline">→</span>
+            <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/25">
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              FASE 2: ATIVA (Mundo Aberto • Padock.on)
+            </span>
+          </div>
+
+          <!-- Nome/Título do Jogador Editável -->
+          <div class="flex items-center gap-3 flex-wrap">
+            <h1 id="playerNameDisplay" class="text-xl sm:text-2xl font-bold tracking-tight text-white">
+              Construtor • Padock.on
+            </h1>
+            <button onclick="openEditProfileModal()" title="Editar título do jogador" class="p-1.5 rounded-lg text-gray-500 hover:text-gray-200 hover:bg-cockpit-elevated border border-transparent hover:border-cockpit-border transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Botões de Ação Discretos -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button onclick="openNewDayModal()" class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/25 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>
+            Novo Dia
+          </button>
+          <button onclick="openBackupModal()" class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-medium bg-cockpit-elevated hover:bg-cockpit-border text-gray-300 border border-cockpit-border transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            Backup JSON
+          </button>
+        </div>
+      </div>
+
+      <!-- Linha Inferior: Telemetria do HUD (Nível/XP, Streak, Contagem Regressiva) -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 pt-5 items-center">
+        <!-- Nível e Barra de XP -->
+        <div class="md:col-span-6 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2.5">
+              <span id="hudLevelBadge" class="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 font-mono font-bold text-xs tracking-wide">
+                LVL 01
+              </span>
+              <span id="hudRankTitle" class="text-gray-400 font-medium">Operador em Campo</span>
+            </div>
+            <div class="font-mono text-gray-400">
+              <span id="hudXpProgressText" class="text-amber-400 font-semibold">0 / 300 XP</span>
+              <span class="text-gray-600 ml-1.5" id="hudTotalXpText">(Total: 0)</span>
+            </div>
+          </div>
+          <div class="w-full h-2.5 bg-cockpit-bg rounded-full overflow-hidden border border-cockpit-border">
+            <div id="hudXpBar" class="bar-fill h-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-300 rounded-full" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Streak -->
+        <div class="md:col-span-3 flex items-center justify-between md:justify-start gap-3 bg-cockpit-bg/70 border border-cockpit-border rounded-xl px-4 py-3">
+          <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/></svg>
+          </div>
+          <div>
+            <p class="text-[10px] font-mono uppercase tracking-wider text-gray-500">Streak de Execução</p>
+            <p class="font-mono text-lg font-bold text-white leading-tight">
+              <span id="hudStreakDays">1</span> <span class="text-xs font-normal text-gray-400">dias</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Contagem Regressiva até 01/02/2027 -->
+        <div class="md:col-span-3 flex items-center justify-between md:justify-start gap-3 bg-cockpit-bg/70 border border-cockpit-border rounded-xl px-4 py-3">
+          <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <p class="text-[10px] font-mono uppercase tracking-wider text-gray-500">Janela • 01/02/2027</p>
+            <p class="font-mono text-lg font-bold text-white leading-tight">
+              <span id="hudCountdownDays">--</span> <span class="text-xs font-normal text-gray-400">dias</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ========================================================= -->
+    <!-- NAVEGAÇÃO POR ABAS                                        -->
+    <!-- ========================================================= -->
+    <nav aria-label="Navegação Principal" class="flex items-center gap-2 overflow-x-auto pb-1">
+      <button onclick="switchTab('hq')" id="tab-hq" class="tab-btn whitespace-nowrap inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+        Quartel-General
+      </button>
+      <button onclick="switchTab('bosses')" id="tab-bosses" class="tab-btn whitespace-nowrap inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"/></svg>
+        Boss Fights
+        <span id="tabBossCounter" class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-cockpit-bg text-gray-400">0/4</span>
+      </button>
+      <button onclick="switchTab('shield')" id="tab-shield" class="tab-btn whitespace-nowrap inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+        Escudo Anti-Ruído
+      </button>
+      <button onclick="switchTab('log')" id="tab-log" class="tab-btn whitespace-nowrap inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+        Log de Batalha
+      </button>
+    </nav>
+
+    <!-- ========================================================= -->
+    <!-- ABA 1: QUARTEL-GENERAL (KPIs + ATRIBUTOS + MISSÕES)       -->
+    <!-- ========================================================= -->
+    <main id="section-hq" class="space-y-6">
+
+      <!-- Painel de Métricas Principais (3 Colunas em Desktop) -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        <!-- KPI 1: Caixa de Guerra (Runway) -->
+        <div class="bg-cockpit-card border border-cockpit-border rounded-2xl p-5 flex flex-col justify-between space-y-4">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <p class="text-[11px] font-mono uppercase tracking-wider text-gray-500">Caixa de Guerra (Runway)</p>
+              <p id="runwayCurrentDisplay" class="font-mono text-2xl sm:text-3xl font-bold text-white mt-1">R$ 40.000</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button onclick="openDepositModal()" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/25 font-mono text-xs font-semibold transition">
+                + Aporte
+              </button>
+              <button onclick="openEditRunwayModal()" title="Editar valores e meta" class="p-1.5 rounded-lg bg-cockpit-elevated hover:bg-cockpit-border text-gray-400 hover:text-white border border-cockpit-border transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span id="runwayPctText" class="text-emerald-400 font-semibold">40.0% concluído</span>
+              <span id="runwayGoalText" class="text-gray-500">Meta: R$ 100.000</span>
+            </div>
+            <div class="w-full h-2.5 bg-cockpit-bg rounded-full overflow-hidden border border-cockpit-border">
+              <div id="runwayBar" class="bar-fill h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full" style="width: 40%"></div>
+            </div>
+            <p id="runwayRemainingText" class="text-xs text-gray-400 font-mono">Faltam R$ 60.000 para blindagem total</p>
+          </div>
+        </div>
+
+        <!-- KPI 2: Receita Recorrente (Padock.on MRR) -->
+        <div class="bg-cockpit-card border border-cockpit-border rounded-2xl p-5 flex flex-col justify-between space-y-4">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <p class="text-[11px] font-mono uppercase tracking-wider text-gray-500">Receita Recorrente (Padock.on MRR)</p>
+              <p id="mrrCurrentDisplay" class="font-mono text-2xl sm:text-3xl font-bold text-white mt-1">R$ 0<span class="text-sm font-normal text-gray-500">/mês</span></p>
+            </div>
+            <button onclick="openEditMrrModal()" title="Editar MRR e meta" class="p-1.5 rounded-lg bg-cockpit-elevated hover:bg-cockpit-border text-gray-400 hover:text-white border border-cockpit-border transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+            </button>
+          </div>
+
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span id="mrrPctText" class="text-amber-400 font-semibold">0.0% da renda</span>
+              <span id="mrrGoalText" class="text-gray-500">Alvo: R$ 14.100/mês</span>
+            </div>
+            <div class="w-full h-2.5 bg-cockpit-bg rounded-full overflow-hidden border border-cockpit-border">
+              <div id="mrrBar" class="bar-fill h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full" style="width: 0%"></div>
+            </div>
+
+            <!-- Contador Rápido de Lojas Pagantes -->
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-xs text-gray-400">Lojas Pagantes Ativas</span>
+              <div class="inline-flex items-center gap-2 bg-cockpit-bg border border-cockpit-border rounded-lg p-1">
+                <button onclick="adjustDealers(-1)" class="w-7 h-7 flex items-center justify-center rounded-md bg-cockpit-elevated hover:bg-cockpit-border text-gray-300 font-mono font-bold transition" aria-label="Remover loja">-</button>
+                <span id="dealersCountDisplay" class="font-mono text-sm font-bold text-white min-w-[2rem] text-center">0</span>
+                <button onclick="adjustDealers(1)" class="w-7 h-7 flex items-center justify-center rounded-md bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 font-mono font-bold transition" aria-label="Adicionar loja">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI 3: Atributos do Jogador (4 Pilares) -->
+        <div class="bg-cockpit-card border border-cockpit-border rounded-2xl p-5 flex flex-col justify-between space-y-3">
+          <div class="flex items-center justify-between">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-gray-500">Atributos do Jogador</p>
+            <span class="text-[10px] font-mono text-gray-600 uppercase">Evolução por Missão</span>
+          </div>
+          <div id="attributesContainer" class="space-y-3">
+            <!-- Renderizado dinamicamente via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Seção Principal: Missões Diárias — Regra "Move The Needle" -->
+      <section class="bg-cockpit-card border border-cockpit-border rounded-2xl p-5 sm:p-6 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-cockpit-border">
+          <div>
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">
+                AS 3 MISSÕES QUE MOVEM O PONTEIRO HOJE
+              </h2>
+              <span id="needleCounterBadge" class="font-mono text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                0/3 concluídas
+              </span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">
+              Foco cirúrgico: execute primeiro o que gera produto, receita ou energia. O resto é ruído.
+            </p>
+          </div>
+          <button onclick="openMissionModal()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-cockpit-bg hover:bg-gray-200 font-semibold text-xs transition shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Nova Missão
+          </button>
+        </div>
+
+        <!-- Lista de Missões Principais (Máximo Recomendado: 3) -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-mono uppercase tracking-wider text-amber-400/90 font-semibold">
+              Prioridade Máxima (Limite Tático: 3 Slots)
+            </span>
+            <span id="primarySlotStatus" class="text-[11px] font-mono text-gray-500">3/3 slots ocupados</span>
+          </div>
+          <div id="primaryMissionsList" class="space-y-2.5">
+            <!-- Renderizado via JS -->
+          </div>
+        </div>
+
+        <!-- Lista de Missões Secundárias -->
+        <div class="space-y-3 pt-2 border-t border-cockpit-border/70">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-mono uppercase tracking-wider text-gray-500 font-semibold">
+              Missões Secundárias &amp; Manutenção
+            </span>
+            <span id="secondaryCountText" class="text-[11px] font-mono text-gray-600">0 missões</span>
+          </div>
+          <div id="secondaryMissionsList" class="space-y-2.5">
+            <!-- Renderizado via JS -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- ABA 2: BOSS FIGHTS (MARCOS DA FASE 2)                     -->
+    <!-- ========================================================= -->
+    <section id="section-bosses" class="hidden space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-cockpit-card border border-cockpit-border rounded-2xl p-5">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">BOSS FIGHTS — MARCOS DA FASE 2</h2>
+          <p class="text-xs text-gray-400 mt-1">
+            Cada checkpoint concluído drena o HP do Chefão. Zere a barra de vida para conquistar o bônus massivo de XP.
+          </p>
+        </div>
+        <button onclick="openBossModal()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 font-semibold text-xs transition shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          Novo Boss
+        </button>
+      </div>
+
+      <div id="bossesGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Renderizado via JS -->
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- ABA 3: ESCUDO ANTI-RUÍDO                                  -->
+    <!-- ========================================================= -->
+    <section id="section-shield" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Coluna Esquerda: Estacionamento de Objetos Brilhantes (Regra dos 7 Dias) -->
+      <div class="lg:col-span-7 bg-cockpit-card border border-cockpit-border rounded-2xl p-5 sm:p-6 space-y-5">
+        <div>
+          <span class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            Regra dos 7 Dias
+          </span>
+          <h2 class="text-base sm:text-lg font-bold text-white mt-2">Estacionamento de Objetos Brilhantes</h2>
+          <p class="text-xs text-gray-400 mt-1">
+            Surgiu uma ideia nova, ferramenta tentadora ou side quest no meio da semana? Estacione aqui. Só reavalie após 7 dias de quarentena.
+          </p>
+        </div>
+
+        <!-- Form Rápido para Estacionar Ideia -->
+        <form onsubmit="addParkedIdea(event)" class="flex flex-col sm:flex-row gap-2.5">
+          <input id="parkedIdeaInput" type="text" required placeholder="Ex: Criar canal no YouTube ou testar outro framework..." class="flex-1 bg-cockpit-bg border border-cockpit-border focus:border-amber-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-600" />
+          <button type="submit" class="px-4 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 font-semibold text-xs transition shrink-0">
+            Estacionar Ideia
+          </button>
+        </form>
+
+        <!-- Lista de Ideias Estacionadas -->
+        <div id="parkedIdeasList" class="space-y-3">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+
+      <!-- Coluna Direita: Código do Jogador (Regras Inegociáveis) -->
+      <div class="lg:col-span-5 bg-cockpit-card border border-cockpit-border rounded-2xl p-5 sm:p-6 space-y-5">
+        <div>
+          <span class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            Sistema Operacional Mental
+          </span>
+          <h2 class="text-base sm:text-lg font-bold text-white mt-2">Código do Jogador</h2>
+          <p class="text-xs text-gray-400 mt-1">
+            Regras inegociáveis para proteger seu foco monomaníaco e sua margem.
+          </p>
+        </div>
+
+        <form onsubmit="addPrinciple(event)" class="flex gap-2">
+          <input id="principleInput" type="text" required placeholder="Adicionar nova regra inegociável..." class="flex-1 bg-cockpit-bg border border-cockpit-border focus:border-emerald-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-600" />
+          <button type="submit" class="px-3.5 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 font-semibold text-xs transition shrink-0">
+            Adicionar
+          </button>
+        </form>
+
+        <div id="principlesList" class="space-y-2.5">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- ABA 4: LOG DE BATALHA (DIÁRIO DE EXECUÇÃO)                -->
+    <!-- ========================================================= -->
+    <section id="section-log" class="hidden space-y-5">
+      <!-- Campo Rápido de Debriefing Diário -->
+      <div class="bg-cockpit-card border border-cockpit-border rounded-2xl p-5 sm:p-6 space-y-4">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-white">Debriefing de Campo</h2>
+          <p class="text-xs text-gray-400 mt-1">Registre em 30 segundos o que funcionou hoje e qual gargalo travou sua execução.</p>
+        </div>
+        <form onsubmit="addJournalEntry(event)" class="space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-mono uppercase tracking-wider text-emerald-400 mb-1.5">O que funcionou hoje</label>
+              <textarea id="journalWorkedInput" rows="2" placeholder="Ex: Filtros dinâmicos do JetEngine carregando em < 1s..." class="w-full bg-cockpit-bg border border-cockpit-border focus:border-emerald-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-600 resize-none"></textarea>
+            </div>
+            <div>
+              <label class="block text-[11px] font-mono uppercase tracking-wider text-red-400 mb-1.5">O que travou / Ajuste para amanhã</label>
+              <textarea id="journalBlockedInput" rows="2" placeholder="Ex: Perdi 40min ajustando sombra de botão em vez de prospectar..." class="w-full bg-cockpit-bg border border-cockpit-border focus:border-red-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-600 resize-none"></textarea>
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button type="submit" class="px-4 py-2.5 rounded-xl bg-white text-cockpit-bg hover:bg-gray-200 font-semibold text-xs transition">
+              Registrar no Log de Batalha
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Feed de Histórico Automático e Manual -->
+      <div class="bg-cockpit-card border border-cockpit-border rounded-2xl p-5 sm:p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-cockpit-border">
+          <h3 class="text-sm font-bold text-white uppercase font-mono tracking-wider">Histórico de Execução</h3>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="setLogFilter('ALL')" id="logFilter-ALL" class="log-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono border transition">Todos</button>
+            <button onclick="setLogFilter('XP')" id="logFilter-XP" class="log-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono border transition">XP &amp; Missões</button>
+            <button onclick="setLogFilter('DEBRIEF')" id="logFilter-DEBRIEF" class="log-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono border transition">Debriefings</button>
+            <button onclick="setLogFilter('BOSS')" id="logFilter-BOSS" class="log-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono border transition">Bosses</button>
+          </div>
+        </div>
+        <div id="battleLogList" class="space-y-2.5 max-h-[540px] overflow-y-auto pr-1">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Rodapé Discreto -->
+    <footer class="text-center text-[11px] font-mono text-gray-600 py-2">
+      HUD DA SOBERANIA • ARMAZENAMENTO LOCAL ATIVO • FOCO MONOMANÍACO
+    </footer>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- CONTAINER DE TOASTS (NOTIFICAÇÕES DE +XP E STATUS)        -->
+  <!-- ========================================================= -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-xs w-full pointer-events-none"></div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL GENÉRICO REUTILIZÁVEL (ZERO ALERT/CONFIRM NATIVO)   -->
+  <!-- ========================================================= -->
+  <div id="modalOverlay" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4" onclick="handleOverlayClick(event)">
+    <div id="modalBox" class="bg-cockpit-card border border-cockpit-borderLight rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-cockpit-border">
+        <h3 id="modalTitle" class="text-base font-bold text-white">Título</h3>
+        <button onclick="closeModal()" class="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-cockpit-elevated transition" aria-label="Fechar modal">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- LÓGICA JAVASCRIPT COMPLETA E AUTOSSUFICIENTE              -->
+  <!-- ========================================================= -->
+  <script>
+    /**
+     * Chave de armazenamento no localStorage para persistência contínua.
+     */
+    const STORAGE_KEY = 'hud_soberania_fase2_v1';
+
+    /**
+     * Metadados dos 4 atributos (pilares) do jogador.
+     */
+    const ATTRIBUTES_META = {
+      engenharia: {
+        id: 'engenharia',
+        name: 'Engenharia & Produto',
+        short: 'Engenharia',
+        desc: 'Padock.on / Front-end / JetEngine',
+        colorText: 'text-emerald-400',
+        colorBar: 'from-emerald-600 to-emerald-400',
+        badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+      },
+      comercial: {
+        id: 'comercial',
+        name: 'Comercial & Outbound',
+        short: 'Comercial',
+        desc: 'Prospecção / Reuniões / Vendas',
+        colorText: 'text-amber-400',
+        colorBar: 'from-amber-600 to-amber-400',
+        badgeClass: 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+      },
+      caixa: {
+        id: 'caixa',
+        name: 'Caixa & Soberania',
+        short: 'Caixa',
+        desc: 'Aportes / Margem / Decisões Frias',
+        colorText: 'text-sky-400',
+        colorBar: 'from-sky-600 to-sky-400',
+        badgeClass: 'bg-sky-500/10 text-sky-400 border-sky-500/20'
+      },
+      energia: {
+        id: 'energia',
+        name: 'Templo & Energia',
+        short: 'Energia',
+        desc: 'Treino / Corrida / Sono',
+        colorText: 'text-rose-400',
+        colorBar: 'from-rose-600 to-rose-400',
+        badgeClass: 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+      }
+    };
+
+    /**
+     * Estado inicial padrão pré-carregado com dados realistas do projeto Padock.on.
+     */
+    function getDefaultState() {
+      const now = Date.now();
+      const oneDayMs = 24 * 60 * 60 * 1000;
+
+      return {
+        player: {
+          name: 'Construtor • Padock.on',
+          totalXp: 0,
+          streak: 1,
+          lastActiveDate: new Date().toISOString().slice(0, 10),
+          executedToday: false
+        },
+        kpis: {
+          runwayCurrent: 40000,
+          runwayGoal: 100000,
+          mrrCurrent: 0,
+          mrrGoal: 14100,
+          dealersCount: 0
+        },
+        attributes: {
+          engenharia: 0,
+          comercial: 0,
+          caixa: 0,
+          energia: 0
+        },
+        missions: [
+          {
+            id: 'm1',
+            title: 'Avançar no front-end e filtros dinâmicos da Padock.on (aprendizado Just-in-Time)',
+            attr: 'engenharia',
+            xp: 60,
+            priority: 'primary',
+            completed: false
+          },
+          {
+            id: 'm2',
+            title: 'Prospectar 10 revendas premium / fazer abordagens de Outbound',
+            attr: 'comercial',
+            xp: 80,
+            priority: 'primary',
+            completed: false
+          },
+          {
+            id: 'm3',
+            title: 'Completar treino / corrida matinal de 6 km sem negociar',
+            attr: 'energia',
+            xp: 40,
+            priority: 'primary',
+            completed: false
+          },
+          {
+            id: 'm4',
+            title: 'Revisar gastos da semana e proteger o caixa de guerra',
+            attr: 'caixa',
+            xp: 30,
+            priority: 'secondary',
+            completed: false
+          }
+        ],
+        bosses: [
+          {
+            id: 'b1',
+            name: 'A ARMADURA PRONTA (MVP Padock.on)',
+            rewardXp: 400,
+            defeatedRewarded: false,
+            checkpoints: [
+              { id: 'b1c1', text: 'Estrutura de estoque no JetEngine', done: false },
+              { id: 'b1c2', text: 'Filtros dinâmicos rodando rápido', done: false },
+              { id: 'b1c3', text: 'Página vitrine de luxo finalizada', done: false },
+              { id: 'b1c4', text: 'Link de demonstração ao vivo', done: false }
+            ]
+          },
+          {
+            id: 'b2',
+            name: 'PRIMEIRO SANGUE (1ª Loja Pagante)',
+            rewardXp: 500,
+            defeatedRewarded: false,
+            checkpoints: [
+              { id: 'b2c1', text: 'Lista de 50 lojas de carros premium', done: false },
+              { id: 'b2c2', text: 'Primeiras 20 abordagens frias', done: false },
+              { id: 'b2c3', text: '3 reuniões de demonstração', done: false },
+              { id: 'b2c4', text: '1º contrato fechado e pago', done: false }
+            ]
+          },
+          {
+            id: 'b3',
+            name: 'CAIXA BLINDADO (R$ 100k)',
+            rewardXp: 400,
+            defeatedRewarded: false,
+            checkpoints: [
+              { id: 'b3c1', text: 'Atingir R$ 50k líquidos', done: false },
+              { id: 'b3c2', text: 'Atingir R$ 75k líquidos', done: false },
+              { id: 'b3c3', text: 'Proteger contra passivos de ego', done: false },
+              { id: 'b3c4', text: 'Bater R$ 100k líquidos', done: false }
+            ]
+          },
+          {
+            id: 'b4',
+            name: 'SOBERANIA TOTAL (Fev/2027)',
+            rewardXp: 500,
+            defeatedRewarded: false,
+            checkpoints: [
+              { id: 'b4c1', text: '3+ clientes ativos na Padock.on', done: false },
+              { id: 'b4c2', text: 'Operação enxuta e documentada', done: false },
+              { id: 'b4c3', text: 'Transição executada com caixa cheio', done: false }
+            ]
+          }
+        ],
+        parkedIdeas: [
+          {
+            id: 'p1',
+            text: 'Reescrever toda a Padock.on do zero em outro stack antes de ter o 1º cliente',
+            createdAt: now - (2 * oneDayMs)
+          },
+          {
+            id: 'p2',
+            text: 'Criar newsletter semanal sobre mercado automotivo de luxo',
+            createdAt: now - (8 * oneDayMs)
+          }
+        ],
+        principles: [
+          { id: 'pr1', text: 'Aprender Just-in-Time construindo, nunca teoria infinita' },
+          { id: 'pr2', text: 'Zero teatro corporativo ou passivos para ego' },
+          { id: 'pr3', text: 'Focar nas 3 tarefas que movem o ponteiro' }
+        ],
+        logs: [
+          {
+            id: 'l1',
+            type: 'SYSTEM',
+            title: 'HUD da Soberania inicializado — Fase 2 ativada.',
+            detail: 'Base consolidada na Fase 1. Alvo primário: Padock.on em campo e Caixa de Guerra em R$ 100k.',
+            xpDelta: 0,
+            timestamp: now
+          }
+        ]
+      };
+    }
+
+    // Estado global em memória e controle de interface
+    let state = loadState();
+    let activeTab = 'hq';
+    let activeLogFilter = 'ALL';
+
+    /**
+     * Carrega estado salvo no localStorage com proteção contra dados corrompidos.
+     */
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return getDefaultState();
+        const parsed = JSON.parse(raw);
+        // Garante integridade mínima mesclando com chaves padrão
+        const defaults = getDefaultState();
+        return {
+          ...defaults,
+          ...parsed,
+          player: { ...defaults.player, ...(parsed.player || {}) },
+          kpis: { ...defaults.kpis, ...(parsed.kpis || {}) },
+          attributes: { ...defaults.attributes, ...(parsed.attributes || {}) }
+        };
+      } catch (err) {
+        console.error('Erro ao ler localStorage, restaurando padrão:', err);
+        return getDefaultState();
+      }
+    }
+
+    /**
+     * Salva o estado atual no localStorage.
+     */
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (err) {
+        showToast('Erro ao salvar dados no navegador.', 'error');
+      }
+    }
+
+    // =========================================================
+    // FUNÇÕES AUXILIARES DE CÁLCULO E FORMATAÇÃO
+    // =========================================================
+
+    function formatBRL(value) {
+      const num = Number(value) || 0;
+      return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function generateId(prefix = 'id') {
+      return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    }
+
+    /**
+     * Calcula nível global a partir do XP total.
+     * Curva progressiva: Nível 1->2 exige 300 XP; cada nível seguinte soma +150 XP.
+     */
+    function calculateLevelProgress(totalXp) {
+      let xp = Math.max(0, Number(totalXp) || 0);
+      let level = 1;
+      let required = 300;
+
+      while (xp >= required) {
+        xp -= required;
+        level++;
+        required = 300 + (level - 1) * 150;
+      }
+
+      return {
+        level,
+        currentLevelXp: xp,
+        requiredXp: required,
+        pct: Math.min(100, Math.round((xp / required) * 100))
+      };
+    }
+
+    /**
+     * Calcula nível individual de cada atributo (200 XP por nível, crescendo +50).
+     */
+    function calculateAttrLevel(attrXp) {
+      let xp = Math.max(0, Number(attrXp) || 0);
+      let level = 1;
+      let required = 150;
+
+      while (xp >= required) {
+        xp -= required;
+        level++;
+        required = 150 + (level - 1) * 50;
+      }
+
+      return {
+        level,
+        currentXp: xp,
+        requiredXp: required,
+        pct: Math.min(100, Math.round((xp / required) * 100))
+      };
+    }
+
+    /**
+     * Retorna o título tático de acordo com o nível atual.
+     */
+    function getRankTitle(level) {
+      if (level >= 15) return 'Indivíduo Soberano';
+      if (level >= 10) return 'Arquitetura de Império';
+      if (level >= 7) return 'Executor Implacável';
+      if (level >= 4) return 'Artesão Digital';
+      if (level >= 2) return 'Construtor em Tração';
+      return 'Operador em Campo';
+    }
+
+    /**
+     * Calcula dias restantes até 01/02/2027 (Janela de Transição).
+     */
+    function getCountdownDays() {
+      const target = new Date('2027-02-01T00:00:00');
+      const now = new Date();
+      // Normaliza para meia-noite local para contagem limpa de dias
+      const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const diffMs = target.getTime() - startToday.getTime();
+      return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    }
+
+    function formatDateTime(ts) {
+      const d = new Date(ts);
+      return d.toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    /**
+     * Registra uma nova entrada no Log de Batalha.
+     */
+    function pushLog(type, title, detail = '', xpDelta = 0) {
+      state.logs.unshift({
+        id: generateId('log'),
+        type,
+        title,
+        detail,
+        xpDelta,
+        timestamp: Date.now()
+      });
+      // Mantém histórico leve (últimos 250 registros)
+      if (state.logs.length > 250) {
+        state.logs = state.logs.slice(0, 250);
+      }
+    }
+
+    // =========================================================
+    // NOTIFICAÇÕES TOAST SUTIS
+    // =========================================================
+
+    function showToast(message, variant = 'xp') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+
+      const styles = {
+        xp: 'bg-cockpit-card border-amber-500/40 text-amber-300',
+        success: 'bg-cockpit-card border-emerald-500/40 text-emerald-300',
+        info: 'bg-cockpit-card border-cockpit-borderLight text-gray-200',
+        error: 'bg-cockpit-card border-red-500/40 text-red-300'
+      };
+
+      toast.className = `toast-enter pointer-events-auto border rounded-xl px-4 py-3 shadow-2xl shadow-black/60 flex items-center gap-2.5 text-xs font-mono ${styles[variant] || styles.info}`;
+      toast.innerHTML = `
+        <span class="w-2 h-2 rounded-full shrink-0 ${variant === 'xp' ? 'bg-amber-400' : variant === 'success' ? 'bg-emerald-400' : variant === 'error' ? 'bg-red-400' : 'bg-gray-400'}"></span>
+        <span>${escapeHtml(message)}</span>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(() => toast.remove(), 260);
+      }, 2800);
+    }
+
+    // =========================================================
+    // CONTROLE DE ABAS E MODAIS
+    // =========================================================
+
+    function switchTab(tabId) {
+      activeTab = tabId;
+      const sections = ['hq', 'bosses', 'shield', 'log'];
+      sections.forEach(id => {
+        const sec = document.getElementById(`section-${id}`);
+        const btn = document.getElementById(`tab-${id}`);
+        if (id === tabId) {
+          sec.classList.remove('hidden');
+          btn.className = 'tab-btn whitespace-nowrap inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border transition bg-cockpit-card text-white border-emerald-500/40 shadow-lg shadow-emerald-950/20';
+        } else {
+          sec.classList.add('hidden');
+          btn.className = 'tab-btn whitespace-nowrap inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition bg-transparent text-gray-400 border-transparent hover:text-gray-200 hover:bg-cockpit-card/60';
+        }
+      });
+    }
+
+    function openModal(title, htmlContent) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalContent').innerHTML = htmlContent;
+      const overlay = document.getElementById('modalOverlay');
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+    }
+
+    function closeModal() {
+      const overlay = document.getElementById('modalOverlay');
+      overlay.classList.add('hidden');
+      overlay.classList.remove('flex');
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target.id === 'modalOverlay') closeModal();
+    }
+
+    // Fecha modal com ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // =========================================================
+    // RENDERIZAÇÃO PRINCIPAL (HUD + ABAS)
+    // =========================================================
+
+    function renderAll() {
+      renderHeader();
+      renderKPIs();
+      renderAttributes();
+      renderMissions();
+      renderBosses();
+      renderShield();
+      renderLogs();
+      saveState();
+    }
+
+    function renderHeader() {
+      const lvl = calculateLevelProgress(state.player.totalXp);
+
+      document.getElementById('playerNameDisplay').textContent = state.player.name;
+      document.getElementById('hudLevelBadge').textContent = `LVL ${String(lvl.level).padStart(2, '0')}`;
+      document.getElementById('hudRankTitle').textContent = getRankTitle(lvl.level);
+      document.getElementById('hudXpProgressText').textContent = `${lvl.currentLevelXp} / ${lvl.requiredXp} XP`;
+      document.getElementById('hudTotalXpText').textContent = `(Total: ${state.player.totalXp})`;
+      document.getElementById('hudXpBar').style.width = `${lvl.pct}%`;
+      document.getElementById('hudStreakDays').textContent = state.player.streak;
+      document.getElementById('hudCountdownDays').textContent = getCountdownDays();
+
+      // Contador de bosses derrotados na aba
+      const defeatedCount = state.bosses.filter(b => getBossHp(b) === 0).length;
+      document.getElementById('tabBossCounter').textContent = `${defeatedCount}/${state.bosses.length}`;
+    }
+
+    function renderKPIs() {
+      // Runway
+      const rCur = Math.max(0, Number(state.kpis.runwayCurrent) || 0);
+      const rGoal = Math.max(1, Number(state.kpis.runwayGoal) || 100000);
+      const rPct = Math.min(100, (rCur / rGoal) * 100);
+      const rRem = Math.max(0, rGoal - rCur);
+
+      document.getElementById('runwayCurrentDisplay').textContent = formatBRL(rCur);
+      document.getElementById('runwayPctText').textContent = `${rPct.toFixed(1)}% concluído`;
+      document.getElementById('runwayGoalText').textContent = `Meta: ${formatBRL(rGoal)}`;
+      document.getElementById('runwayBar').style.width = `${rPct}%`;
+      document.getElementById('runwayRemainingText').textContent = rRem > 0
+        ? `Faltam ${formatBRL(rRem)} para blindagem total`
+        : 'META ATINGIDA — CAIXA BLINDADO';
+
+      // MRR
+      const mCur = Math.max(0, Number(state.kpis.mrrCurrent) || 0);
+      const mGoal = Math.max(1, Number(state.kpis.mrrGoal) || 14100);
+      const mPct = Math.min(100, (mCur / mGoal) * 100);
+
+      document.getElementById('mrrCurrentDisplay').innerHTML = `${formatBRL(mCur)}<span class="text-sm font-normal text-gray-500">/mês</span>`;
+      document.getElementById('mrrPctText').textContent = `${mPct.toFixed(1)}% da renda`;
+      document.getElementById('mrrGoalText').textContent = `Alvo: ${formatBRL(mGoal)}/mês`;
+      document.getElementById('mrrBar').style.width = `${mPct}%`;
+      document.getElementById('dealersCountDisplay').textContent = state.kpis.dealersCount;
+    }
+
+    function renderAttributes() {
+      const container = document.getElementById('attributesContainer');
+      container.innerHTML = Object.values(ATTRIBUTES_META).map(meta => {
+        const xp = state.attributes[meta.id] || 0;
+        const info = calculateAttrLevel(xp);
+        return `
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="font-medium text-gray-200 truncate">${meta.name}</span>
+              </div>
+              <div class="font-mono text-[11px] shrink-0 flex items-center gap-2">
+                <span class="${meta.colorText} font-semibold">NV ${info.level}</span>
+                <span class="text-gray-500">${info.currentXp}/${info.requiredXp}</span>
+              </div>
+            </div>
+            <div class="w-full h-1.5 bg-cockpit-bg rounded-full overflow-hidden border border-cockpit-border/80">
+              <div class="bar-fill h-full bg-gradient-to-r ${meta.colorBar} rounded-full" style="width: ${info.pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderMissions() {
+      const primaries = state.missions.filter(m => m.priority === 'primary');
+      const secondaries = state.missions.filter(m => m.priority !== 'primary');
+
+      const completedPrimaries = primaries.filter(m => m.completed).length;
+      document.getElementById('needleCounterBadge').textContent = `${completedPrimaries}/${primaries.length} concluídas`;
+      document.getElementById('primarySlotStatus').textContent = `${primaries.length}/3 slots ocupados`;
+      document.getElementById('secondaryCountText').textContent = `${secondaries.length} ${secondaries.length === 1 ? 'missão' : 'missões'}`;
+
+      const renderItem = (m) => {
+        const meta = ATTRIBUTES_META[m.attr] || ATTRIBUTES_META.engenharia;
+        return `
+          <div class="group flex items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl border transition ${
+            m.completed
+              ? 'bg-emerald-500/[0.04] border-emerald-500/25'
+              : 'bg-cockpit-bg/70 border-cockpit-border hover:border-cockpit-borderLight'
+          }">
+            <div class="flex items-start gap-3 flex-1 min-w-0">
+              <button onclick="toggleMission('${m.id}')" aria-label="Alternar conclusão da missão" class="mt-0.5 w-6 h-6 rounded-lg border flex items-center justify-center shrink-0 transition ${
+                m.completed
+                  ? 'bg-emerald-500 border-emerald-500 text-cockpit-bg'
+                  : 'bg-cockpit-card border-gray-600 hover:border-emerald-400 text-transparent'
+              }">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </button>
+
+              <div class="min-w-0 flex-1 space-y-1.5">
+                <p class="text-sm font-medium leading-snug ${m.completed ? 'line-through text-gray-500' : 'text-gray-100'}">
+                  ${escapeHtml(m.title)}
+                </p>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded border ${meta.badgeClass}">
+                    ${meta.short}
+                  </span>
+                  <span class="text-[11px] font-mono font-semibold ${m.completed ? 'text-emerald-400' : 'text-amber-400'}">
+                    +${m.xp} XP
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1 shrink-0">
+              <button onclick="openMissionModal('${m.id}')" title="Editar missão" class="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-cockpit-elevated transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+              </button>
+              <button onclick="deleteMission('${m.id}')" title="Excluir missão" class="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      };
+
+      document.getElementById('primaryMissionsList').innerHTML = primaries.length
+        ? primaries.map(renderItem).join('')
+        : `<div class="p-6 text-center rounded-xl border border-dashed border-cockpit-border text-xs text-gray-500">Nenhuma missão principal definida. Adicione até 3 missões críticas para mover o ponteiro hoje.</div>`;
+
+      document.getElementById('secondaryMissionsList').innerHTML = secondaries.length
+        ? secondaries.map(renderItem).join('')
+        : `<div class="p-4 text-center rounded-xl border border-dashed border-cockpit-border text-xs text-gray-600">Sem missões secundárias. Ótimo — mantenha o foco no essencial.</div>`;
+    }
+
+    function getBossHp(boss) {
+      if (!boss.checkpoints || boss.checkpoints.length === 0) return 100;
+      const doneCount = boss.checkpoints.filter(c => c.done).length;
+      return Math.round(((boss.checkpoints.length - doneCount) / boss.checkpoints.length) * 100);
+    }
+
+    function renderBosses() {
+      const grid = document.getElementById('bossesGrid');
+      if (!state.bosses.length) {
+        grid.innerHTML = `<div class="col-span-full bg-cockpit-card border border-dashed border-cockpit-border rounded-2xl p-8 text-center text-sm text-gray-500">Nenhum Boss cadastrado. Crie o próximo grande marco da Fase 2.</div>`;
+        return;
+      }
+
+      grid.innerHTML = state.bosses.map((boss, idx) => {
+        const hp = getBossHp(boss);
+        const defeated = hp === 0;
+        const doneCount = boss.checkpoints.filter(c => c.done).length;
+
+        return `
+          <div class="bg-cockpit-card border rounded-2xl p-5 flex flex-col justify-between space-y-4 transition ${
+            defeated ? 'border-emerald-500/40 bg-emerald-500/[0.02]' : 'border-cockpit-border'
+          }">
+            <div class="space-y-3">
+              <!-- Cabeçalho do Boss -->
+              <div class="flex items-start justify-between gap-2">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-gray-500">BOSS 0${idx + 1}</span>
+                    ${defeated
+                      ? `<span class="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">DERROTADO</span>`
+                      : `<span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">ATIVO</span>`
+                    }
+                    <span class="text-[11px] font-mono font-semibold text-amber-400">+${boss.rewardXp} XP</span>
+                  </div>
+                  <h3 class="text-base font-bold text-white leading-snug">${escapeHtml(boss.name)}</h3>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  <button onclick="openBossModal('${boss.id}')" title="Editar Boss" class="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-cockpit-elevated transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                  </button>
+                  <button onclick="deleteBoss('${boss.id}')" title="Excluir Boss" class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Barra de HP do Boss -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs font-mono">
+                  <span class="${defeated ? 'text-emerald-400' : 'text-red-400'} font-semibold">HP: ${hp}%</span>
+                  <span class="text-gray-500">${doneCount}/${boss.checkpoints.length} checkpoints</span>
+                </div>
+                <div class="w-full h-2.5 bg-cockpit-bg rounded-full overflow-hidden border border-cockpit-border">
+                  <div class="bar-fill h-full rounded-full ${defeated ? 'bg-emerald-500' : 'bg-gradient-to-r from-red-700 via-red-500 to-rose-400'}" style="width: ${hp}%"></div>
+                </div>
+              </div>
+
+              <!-- Checkpoints -->
+              <div class="space-y-2 pt-2">
+                ${boss.checkpoints.map(cp => `
+                  <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-cockpit-bg/70 border border-cockpit-border/80">
+                    <button onclick="toggleCheckpoint('${boss.id}', '${cp.id}')" class="flex items-center gap-2.5 text-left flex-1 min-w-0">
+                      <span class="w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition ${
+                        cp.done
+                          ? 'bg-emerald-500 border-emerald-500 text-cockpit-bg'
+                          : 'bg-cockpit-card border-gray-600 text-transparent'
+                      }">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                      </span>
+                      <span class="text-xs sm:text-sm ${cp.done ? 'line-through text-gray-500' : 'text-gray-200'}">${escapeHtml(cp.text)}</span>
+                    </button>
+                    <button onclick="deleteCheckpoint('${boss.id}', '${cp.id}')" title="Remover etapa" class="p-1 text-gray-600 hover:text-red-400 transition shrink-0">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Form rápido para adicionar novo checkpoint ao Boss -->
+            <form onsubmit="addCheckpoint(event, '${boss.id}')" class="flex gap-2 pt-2 border-t border-cockpit-border/60">
+              <input id="cp-input-${boss.id}" type="text" required placeholder="Adicionar novo checkpoint..." class="flex-1 bg-cockpit-bg border border-cockpit-border focus:border-amber-500/50 focus:outline-none rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600" />
+              <button type="submit" class="px-3 py-2 rounded-lg bg-cockpit-elevated hover:bg-cockpit-border text-gray-300 text-xs font-medium border border-cockpit-border transition shrink-0">
+                + Etapa
+              </button>
+            </form>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderShield() {
+      const ideasContainer = document.getElementById('parkedIdeasList');
+      const now = Date.now();
+      const dayMs = 24 * 60 * 60 * 1000;
+
+      if (!state.parkedIdeas.length) {
+        ideasContainer.innerHTML = `<div class="p-6 text-center rounded-xl border border-dashed border-cockpit-border text-xs text-gray-500">Estacionamento limpo. Nenhuma distração na fila.</div>`;
+      } else {
+        ideasContainer.innerHTML = state.parkedIdeas.map(item => {
+          const daysElapsed = Math.max(0, Math.floor((now - item.createdAt) / dayMs));
+          const ready = daysElapsed >= 7;
+          const remaining = Math.max(0, 7 - daysElapsed);
+          const dateLabel = new Date(item.createdAt).toLocaleDateString('pt-BR');
+
+          return `
+            <div class="p-3.5 rounded-xl bg-cockpit-bg/70 border border-cockpit-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="space-y-1.5 min-w-0">
+                <p class="text-sm text-gray-200 leading-snug">${escapeHtml(item.text)}</p>
+                <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono">
+                  <span class="text-gray-500">Registrada em ${dateLabel} (${daysElapsed}d de molho)</span>
+                  ${ready
+                    ? `<span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">Pronta para reavaliar</span>`
+                    : `<span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Aguardar 7 dias (faltam ${remaining}d)</span>`
+                  }
+                </div>
+              </div>
+              <button onclick="discardParkedIdea('${item.id}')" class="px-3 py-2 rounded-lg bg-cockpit-elevated hover:bg-red-500/15 text-gray-400 hover:text-red-300 border border-cockpit-border hover:border-red-500/30 text-xs font-mono transition shrink-0">
+                Descartar Ruído
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Princípios (Código do Jogador)
+      const principlesContainer = document.getElementById('principlesList');
+      if (!state.principles.length) {
+        principlesContainer.innerHTML = `<div class="p-5 text-center rounded-xl border border-dashed border-cockpit-border text-xs text-gray-500">Adicione suas regras inegociáveis.</div>`;
+      } else {
+        principlesContainer.innerHTML = state.principles.map((p, i) => `
+          <div class="flex items-start justify-between gap-3 p-3 rounded-xl bg-cockpit-bg/70 border border-cockpit-border">
+            <div class="flex items-start gap-2.5 min-w-0">
+              <span class="font-mono text-xs font-bold text-emerald-400 mt-0.5">${String(i + 1).padStart(2, '0')}.</span>
+              <p class="text-sm text-gray-200 leading-snug">${escapeHtml(p.text)}</p>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <button onclick="openEditPrincipleModal('${p.id}')" title="Editar regra" class="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-cockpit-elevated transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+              </button>
+              <button onclick="deletePrinciple('${p.id}')" title="Remover regra" class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderLogs() {
+      // Estiliza botões de filtro
+      ['ALL', 'XP', 'DEBRIEF', 'BOSS'].forEach(f => {
+        const btn = document.getElementById(`logFilter-${f}`);
+        if (!btn) return;
+        btn.className = f === activeLogFilter
+          ? 'log-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono border transition bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+          : 'log-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono border transition bg-cockpit-bg text-gray-400 border-cockpit-border hover:text-gray-200';
+      });
+
+      const filtered = state.logs.filter(l => {
+        if (activeLogFilter === 'ALL') return true;
+        return l.type === activeLogFilter;
+      });
+
+      const list = document.getElementById('battleLogList');
+      if (!filtered.length) {
+        list.innerHTML = `<div class="p-6 text-center rounded-xl border border-dashed border-cockpit-border text-xs text-gray-500">Nenhum registro nesta categoria ainda.</div>`;
+        return;
+      }
+
+      const typeBadges = {
+        XP: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+        BOSS: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+        DEBRIEF: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
+        FINANCE: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
+        SYSTEM: 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+      };
+
+      list.innerHTML = filtered.map(entry => `
+        <div class="p-3.5 rounded-xl bg-cockpit-bg/70 border border-cockpit-border/80 flex items-start justify-between gap-3">
+          <div class="space-y-1 min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded border ${typeBadges[entry.type] || typeBadges.SYSTEM}">
+                ${entry.type}
+              </span>
+              <span class="text-[11px] font-mono text-gray-500">${formatDateTime(entry.timestamp)}</span>
+              ${entry.xpDelta ? `<span class="text-[11px] font-mono font-semibold ${entry.xpDelta > 0 ? 'text-amber-400' : 'text-red-400'}">${entry.xpDelta > 0 ? '+' : ''}${entry.xpDelta} XP</span>` : ''}
+            </div>
+            <p class="text-sm font-medium text-gray-200">${escapeHtml(entry.title)}</p>
+            ${entry.detail ? `<p class="text-xs text-gray-400 whitespace-pre-line leading-relaxed">${escapeHtml(entry.detail)}</p>` : ''}
+          </div>
+          <button onclick="deleteLogEntry('${entry.id}')" title="Remover registro" class="p-1 text-gray-600 hover:text-red-400 transition shrink-0">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // =========================================================
+    // AÇÕES: MISSÕES DIÁRIAS
+    // =========================================================
+
+    function toggleMission(id) {
+      const m = state.missions.find(item => item.id === id);
+      if (!m) return;
+
+      const prevLvl = calculateLevelProgress(state.player.totalXp).level;
+      m.completed = !m.completed;
+
+      if (m.completed) {
+        state.player.totalXp += m.xp;
+        state.attributes[m.attr] = (state.attributes[m.attr] || 0) + m.xp;
+        state.player.executedToday = true;
+        pushLog('XP', `Missão concluída: ${m.title}`, `Atributo: ${ATTRIBUTES_META[m.attr]?.name || m.attr}`, m.xp);
+
+        const newLvl = calculateLevelProgress(state.player.totalXp).level;
+        if (newLvl > prevLvl) {
+          showToast(`LEVEL UP! Você subiu para o Nível ${newLvl} (+${m.xp} XP)`, 'success');
+        } else {
+          showToast(`+${m.xp} XP em ${ATTRIBUTES_META[m.attr]?.short || m.attr}`, 'xp');
+        }
+      } else {
+        // Reverte XP ao desmarcar para manter integridade
+        state.player.totalXp = Math.max(0, state.player.totalXp - m.xp);
+        state.attributes[m.attr] = Math.max(0, (state.attributes[m.attr] || 0) - m.xp);
+        showToast(`Missão desmarcada (-${m.xp} XP)`, 'info');
+      }
+
+      renderAll();
+    }
+
+    function openMissionModal(editId = null) {
+      const existing = editId ? state.missions.find(m => m.id === editId) : null;
+      const primaryCount = state.missions.filter(m => m.priority === 'primary').length;
+      const suggestSecondary = !existing && primaryCount >= 3;
+
+      openModal(existing ? 'Editar Missão' : 'Nova Missão Diária', `
+        <form onsubmit="saveMission(event, '${editId || ''}')" class="space-y-4">
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Descrição da Missão</label>
+            <input id="mTitleInput" type="text" required value="${escapeHtml(existing?.title || '')}" placeholder="Ex: Implementar busca dinâmica por marca/modelo" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-emerald-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Atributo / Pilar</label>
+              <select id="mAttrInput" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-emerald-500/60 focus:outline-none rounded-xl px-3 py-2.5 text-sm text-white">
+                ${Object.values(ATTRIBUTES_META).map(a => `
+                  <option value="${a.id}" ${existing?.attr === a.id ? 'selected' : ''}>${a.name}</option>
+                `).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Prioridade</label>
+              <select id="mPriorityInput" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-emerald-500/60 focus:outline-none rounded-xl px-3 py-2.5 text-sm text-white">
+                <option value="primary" ${(existing ? existing.priority === 'primary' : !suggestSecondary) ? 'selected' : ''}>Principal (Move The Needle)</option>
+                <option value="secondary" ${(existing ? existing.priority === 'secondary' : suggestSecondary) ? 'selected' : ''}>Secundária / Manutenção</option>
+              </select>
+            </div>
+          </div>
+
+          ${suggestSecondary ? `<p class="text-[11px] font-mono text-amber-400/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">Você já tem 3 missões principais ativas. Recomendamos manter o limite tático de 3 slots ou criar como Secundária.</p>` : ''}
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs font-mono uppercase text-gray-400">Recompensa de XP</label>
+              <span id="mXpPreview" class="font-mono text-sm font-bold text-amber-400">+${existing?.xp || 50} XP</span>
+            </div>
+            <input id="mXpInput" type="range" min="20" max="100" step="10" value="${existing?.xp || 50}" oninput="document.getElementById('mXpPreview').textContent = '+' + this.value + ' XP'" class="w-full accent-amber-500" />
+            <div class="flex justify-between text-[10px] font-mono text-gray-600 mt-1">
+              <span>20 XP (Rápida)</span>
+              <span>60 XP (Forte)</span>
+              <span>100 XP (Alta Alavancagem)</span>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-cockpit-elevated text-gray-300 text-xs font-medium">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-cockpit-bg text-xs font-bold transition">Salvar Missão</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveMission(e, editId) {
+      e.preventDefault();
+      const title = document.getElementById('mTitleInput').value.trim();
+      const attr = document.getElementById('mAttrInput').value;
+      const priority = document.getElementById('mPriorityInput').value;
+      const xp = Math.min(100, Math.max(20, Number(document.getElementById('mXpInput').value) || 50));
+
+      if (!title) return;
+
+      if (editId) {
+        const idx = state.missions.findIndex(m => m.id === editId);
+        if (idx !== -1) {
+          state.missions[idx] = { ...state.missions[idx], title, attr, priority, xp };
+          showToast('Missão atualizada.', 'info');
+        }
+      } else {
+        state.missions.push({
+          id: generateId('m'),
+          title,
+          attr,
+          priority,
+          xp,
+          completed: false
+        });
+        showToast('Nova missão adicionada.', 'success');
+      }
+
+      closeModal();
+      renderAll();
+    }
+
+    function deleteMission(id) {
+      state.missions = state.missions.filter(m => m.id !== id);
+      showToast('Missão removida.', 'info');
+      renderAll();
+    }
+
+    // =========================================================
+    // AÇÕES: KPIs (CAIXA DE GUERRA, MRR, LOJAS)
+    // =========================================================
+
+    function openDepositModal() {
+      openModal('Registrar Aporte no Caixa de Guerra', `
+        <form onsubmit="submitDeposit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Valor do Aporte (R$)</label>
+            <input id="depositAmountInput" type="number" step="100" min="1" required placeholder="Ex: 3500" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-emerald-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 font-mono text-base text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Observação (Opcional)</label>
+            <input id="depositNoteInput" type="text" placeholder="Ex: Salário + sobra do mês / PLR" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-emerald-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white" />
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-cockpit-elevated text-gray-300 text-xs font-medium">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-cockpit-bg text-xs font-bold transition">Confirmar Aporte (+50 XP)</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function submitDeposit(e) {
+      e.preventDefault();
+      const amount = Number(document.getElementById('depositAmountInput').value) || 0;
+      const note = document.getElementById('depositNoteInput').value.trim();
+      if (amount <= 0) return;
+
+      state.kpis.runwayCurrent = (Number(state.kpis.runwayCurrent) || 0) + amount;
+      state.player.totalXp += 50;
+      state.attributes.caixa = (state.attributes.caixa || 0) + 50;
+      state.player.executedToday = true;
+
+      pushLog('FINANCE', `Aporte de ${formatBRL(amount)} no Caixa de Guerra`, note || `Caixa atualizado para ${formatBRL(state.kpis.runwayCurrent)}`, 50);
+      showToast(`+${formatBRL(amount)} no Caixa • +50 XP`, 'success');
+      closeModal();
+      renderAll();
+    }
+
+    function openEditRunwayModal() {
+      openModal('Editar Caixa de Guerra (Runway)', `
+        <form onsubmit="saveRunwayEdit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Valor Atual Acumulado (R$)</label>
+            <input id="editRunwayCurrent" type="number" min="0" required value="${state.kpis.runwayCurrent}" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-emerald-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 font-mono text-sm text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Meta de Blindagem (R$)</label>
+            <input id="editRunwayGoal" type="number" min="1" required value="${state.kpis.runwayGoal}" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-emerald-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 font-mono text-sm text-white" />
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-cockpit-elevated text-gray-300 text-xs font-medium">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-cockpit-bg text-xs font-bold transition">Atualizar Caixa</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveRunwayEdit(e) {
+      e.preventDefault();
+      state.kpis.runwayCurrent = Math.max(0, Number(document.getElementById('editRunwayCurrent').value) || 0);
+      state.kpis.runwayGoal = Math.max(1, Number(document.getElementById('editRunwayGoal').value) || 100000);
+      showToast('Métricas do Caixa atualizadas.', 'info');
+      closeModal();
+      renderAll();
+    }
+
+    function openEditMrrModal() {
+      openModal('Editar Receita Recorrente (Padock.on MRR)', `
+        <form onsubmit="saveMrrEdit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">MRR Atual (R$/mês)</label>
+            <input id="editMrrCurrent" type="number" min="0" required value="${state.kpis.mrrCurrent}" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-amber-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 font-mono text-sm text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Meta de Substituição de Renda (R$/mês)</label>
+            <input id="editMrrGoal" type="number" min="1" required value="${state.kpis.mrrGoal}" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-amber-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 font-mono text-sm text-white" />
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-cockpit-elevated text-gray-300 text-xs font-medium">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-cockpit-bg text-xs font-bold transition">Salvar MRR</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveMrrEdit(e) {
+      e.preventDefault();
+      const prevMrr = state.kpis.mrrCurrent;
+      state.kpis.mrrCurrent = Math.max(0, Number(document.getElementById('editMrrCurrent').value) || 0);
+      state.kpis.mrrGoal = Math.max(1, Number(document.getElementById('editMrrGoal').value) || 14100);
+      if (state.kpis.mrrCurrent > prevMrr) {
+        pushLog('FINANCE', `MRR da Padock.on subiu para ${formatBRL(state.kpis.mrrCurrent)}/mês`, `Anterior: ${formatBRL(prevMrr)}/mês`, 0);
+      }
+      showToast('MRR atualizado.', 'success');
+      closeModal();
+      renderAll();
+    }
+
+    function adjustDealers(delta) {
+      const next = Math.max(0, (Number(state.kpis.dealersCount) || 0) + delta);
+      if (next === state.kpis.dealersCount) return;
+      state.kpis.dealersCount = next;
+      if (delta > 0) {
+        pushLog('FINANCE', `Nova loja pagante na Padock.on! Total: ${next}`, 'Lembre-se de atualizar o MRR mensal.', 0);
+        showToast(`Lojas pagantes: ${next}`, 'success');
+      }
+      renderAll();
+    }
+
+    // =========================================================
+    // AÇÕES: BOSS FIGHTS
+    // =========================================================
+
+    function toggleCheckpoint(bossId, cpId) {
+      const boss = state.bosses.find(b => b.id === bossId);
+      if (!boss) return;
+      const cp = boss.checkpoints.find(c => c.id === cpId);
+      if (!cp) return;
+
+      cp.done = !cp.done;
+      const hp = getBossHp(boss);
+
+      if (hp === 0 && !boss.defeatedRewarded) {
+        boss.defeatedRewarded = true;
+        state.player.totalXp += boss.rewardXp;
+        state.player.executedToday = true;
+        pushLog('BOSS', `BOSS DERROTADO: ${boss.name}`, 'Todos os checkpoints concluídos. Marco desbloqueado!', boss.rewardXp);
+        showToast(`BOSS DERROTADO! +${boss.rewardXp} XP`, 'success');
+      } else if (hp > 0 && boss.defeatedRewarded) {
+        // Reverte bônus caso usuário desmarque um checkpoint de um boss derrotado
+        boss.defeatedRewarded = false;
+        state.player.totalXp = Math.max(0, state.player.totalXp - boss.rewardXp);
+        showToast(`Boss reativado (-${boss.rewardXp} XP)`, 'info');
+      } else if (cp.done) {
+        state.player.executedToday = true;
+        showToast(`Dano crítico no Boss! HP restante: ${hp}%`, 'xp');
+      }
+
+      renderAll();
+    }
+
+    function addCheckpoint(e, bossId) {
+      e.preventDefault();
+      const input = document.getElementById(`cp-input-${bossId}`);
+      const text = input.value.trim();
+      if (!text) return;
+
+      const boss = state.bosses.find(b => b.id === bossId);
+      if (!boss) return;
+
+      boss.checkpoints.push({ id: generateId('cp'), text, done: false });
+      // Se o boss estava derrotado e ganhou nova etapa, reverte estado de derrotado
+      if (boss.defeatedRewarded) {
+        boss.defeatedRewarded = false;
+        state.player.totalXp = Math.max(0, state.player.totalXp - boss.rewardXp);
+      }
+
+      input.value = '';
+      renderAll();
+    }
+
+    function deleteCheckpoint(bossId, cpId) {
+      const boss = state.bosses.find(b => b.id === bossId);
+      if (!boss) return;
+      boss.checkpoints = boss.checkpoints.filter(c => c.id !== cpId);
+      renderAll();
+    }
+
+    function openBossModal(editId = null) {
+      const existing = editId ? state.bosses.find(b => b.id === editId) : null;
+
+      openModal(existing ? 'Editar Boss Fight' : 'Criar Novo Boss Fight', `
+        <form onsubmit="saveBoss(event, '${editId || ''}')" class="space-y-4">
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Nome do Boss / Marco</label>
+            <input id="bNameInput" type="text" required value="${escapeHtml(existing?.name || '')}" placeholder="Ex: ESCALA INICIAL (5 Lojas Ativas)" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-amber-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Bônus de XP ao Derrotar (300 a 500)</label>
+            <input id="bRewardInput" type="number" min="100" max="1000" step="50" required value="${existing?.rewardXp || 400}" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-amber-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 font-mono text-sm text-white" />
+          </div>
+          ${!existing ? `
+            <div>
+              <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Checkpoints Iniciais (1 por linha)</label>
+              <textarea id="bCheckpointsInput" rows="4" required placeholder="Etapa 1&#10;Etapa 2&#10;Etapa 3" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-amber-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white"></textarea>
+            </div>
+          ` : ''}
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-cockpit-elevated text-gray-300 text-xs font-medium">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-cockpit-bg text-xs font-bold transition">Salvar Boss</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveBoss(e, editId) {
+      e.preventDefault();
+      const name = document.getElementById('bNameInput').value.trim();
+      const rewardXp = Math.max(100, Number(document.getElementById('bRewardInput').value) || 400);
+      if (!name) return;
+
+      if (editId) {
+        const boss = state.bosses.find(b => b.id === editId);
+        if (boss) {
+          boss.name = name;
+          boss.rewardXp = rewardXp;
+        }
+        showToast('Boss atualizado.', 'info');
+      } else {
+        const rawCps = document.getElementById('bCheckpointsInput').value
+          .split('\n')
+          .map(s => s.trim())
+          .filter(Boolean);
+        state.bosses.push({
+          id: generateId('b'),
+          name,
+          rewardXp,
+          defeatedRewarded: false,
+          checkpoints: rawCps.map(text => ({ id: generateId('cp'), text, done: false }))
+        });
+        showToast('Novo Boss adicionado à arena.', 'success');
+      }
+
+      closeModal();
+      renderAll();
+    }
+
+    function deleteBoss(bossId) {
+      state.bosses = state.bosses.filter(b => b.id !== bossId);
+      showToast('Boss removido.', 'info');
+      renderAll();
+    }
+
+    // =========================================================
+    // AÇÕES: ESCUDO ANTI-RUÍDO
+    // =========================================================
+
+    function addParkedIdea(e) {
+      e.preventDefault();
+      const input = document.getElementById('parkedIdeaInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      state.parkedIdeas.unshift({
+        id: generateId('p'),
+        text,
+        createdAt: Date.now()
+      });
+      input.value = '';
+      showToast('Ideia estacionada em quarentena (7 dias).', 'info');
+      renderAll();
+    }
+
+    function discardParkedIdea(id) {
+      const idea = state.parkedIdeas.find(i => i.id === id);
+      state.parkedIdeas = state.parkedIdeas.filter(i => i.id !== id);
+      if (idea) {
+        pushLog('SYSTEM', 'Ruído descartado do estacionamento', idea.text, 0);
+      }
+      showToast('Ruído eliminado. Foco preservado.', 'success');
+      renderAll();
+    }
+
+    function addPrinciple(e) {
+      e.preventDefault();
+      const input = document.getElementById('principleInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      state.principles.push({ id: generateId('pr'), text });
+      input.value = '';
+      showToast('Regra adicionada ao Código do Jogador.', 'success');
+      renderAll();
+    }
+
+    function openEditPrincipleModal(id) {
+      const p = state.principles.find(item => item.id === id);
+      if (!p) return;
+      openModal('Editar Regra do Código', `
+        <form onsubmit="savePrincipleEdit(event, '${id}')" class="space-y-4">
+          <input id="editPrincipleText" type="text" required value="${escapeHtml(p.text)}" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-emerald-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white" />
+          <div class="flex justify-end gap-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-cockpit-elevated text-gray-300 text-xs font-medium">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-500 text-cockpit-bg text-xs font-bold">Salvar</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function savePrincipleEdit(e, id) {
+      e.preventDefault();
+      const p = state.principles.find(item => item.id === id);
+      const text = document.getElementById('editPrincipleText').value.trim();
+      if (p && text) {
+        p.text = text;
+        showToast('Regra atualizada.', 'info');
+      }
+      closeModal();
+      renderAll();
+    }
+
+    function deletePrinciple(id) {
+      state.principles = state.principles.filter(p => p.id !== id);
+      renderAll();
+    }
+
+    // =========================================================
+    // AÇÕES: LOG DE BATALHA
+    // =========================================================
+
+    function addJournalEntry(e) {
+      e.preventDefault();
+      const worked = document.getElementById('journalWorkedInput').value.trim();
+      const blocked = document.getElementById('journalBlockedInput').value.trim();
+      if (!worked && !blocked) {
+        showToast('Preencha ao menos um dos campos do debriefing.', 'error');
+        return;
+      }
+
+      const parts = [];
+      if (worked) parts.push(`Funcionou: ${worked}`);
+      if (blocked) parts.push(`Travou / Ajuste: ${blocked}`);
+
+      pushLog('DEBRIEF', 'Debriefing Diário de Execução', parts.join('\n'), 15);
+      state.player.totalXp += 15;
+      state.player.executedToday = true;
+
+      document.getElementById('journalWorkedInput').value = '';
+      document.getElementById('journalBlockedInput').value = '';
+      showToast('Debriefing registrado (+15 XP).', 'xp');
+      renderAll();
+    }
+
+    function setLogFilter(filter) {
+      activeLogFilter = filter;
+      renderLogs();
+    }
+
+    function deleteLogEntry(id) {
+      state.logs = state.logs.filter(l => l.id !== id);
+      renderAll();
+    }
+
+    // =========================================================
+    // AÇÕES GLOBAIS: PERFIL, NOVO DIA E BACKUP JSON
+    // =========================================================
+
+    function openEditProfileModal() {
+      openModal('Identidade do Jogador', `
+        <form onsubmit="saveProfileEdit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Nome / Título no HUD</label>
+            <input id="editPlayerNameInput" type="text" required value="${escapeHtml(state.player.name)}" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-emerald-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-mono uppercase text-gray-400 mb-1.5">Streak Atual (dias)</label>
+            <input id="editPlayerStreakInput" type="number" min="0" required value="${state.player.streak}" class="w-full bg-cockpit-bg border border-cockpit-border focus:border-emerald-500/60 focus:outline-none rounded-xl px-3.5 py-2.5 font-mono text-sm text-white" />
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-cockpit-elevated text-gray-300 text-xs font-medium">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-500 text-cockpit-bg text-xs font-bold">Salvar Perfil</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveProfileEdit(e) {
+      e.preventDefault();
+      const name = document.getElementById('editPlayerNameInput').value.trim();
+      const streak = Math.max(0, Number(document.getElementById('editPlayerStreakInput').value) || 0);
+      if (name) state.player.name = name;
+      state.player.streak = streak;
+      showToast('Perfil atualizado.', 'info');
+      closeModal();
+      renderAll();
+    }
+
+    function openNewDayModal() {
+      const doneCount = state.missions.filter(m => m.completed).length;
+      const totalCount = state.missions.length;
+      const willIncrement = doneCount > 0 || state.player.executedToday;
+
+      openModal('Iniciar Novo Dia de Execução', `
+        <div class="space-y-4">
+          <p class="text-sm text-gray-300 leading-relaxed">
+            Isso vai resetar o status das suas missões diárias para um novo ciclo, mantendo todo o seu XP, atributos, Bosses e histórico intactos.
+          </p>
+          <div class="p-3.5 rounded-xl bg-cockpit-bg border border-cockpit-border font-mono text-xs space-y-1.5">
+            <div class="flex justify-between">
+              <span class="text-gray-500">Missões concluídas no ciclo:</span>
+              <span class="text-white font-semibold">${doneCount}/${totalCount}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Atualização do Streak:</span>
+              <span class="${willIncrement ? 'text-emerald-400' : 'text-amber-400'} font-semibold">
+                ${willIncrement ? `${state.player.streak} → ${state.player.streak + 1} dias` : 'Mantido (sem execução registrada)'}
+              </span>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-1">
+            <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-cockpit-elevated text-gray-300 text-xs font-medium">Cancelar</button>
+            <button onclick="confirmNewDay()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-cockpit-bg text-xs font-bold transition">Virar Dia &amp; Resetar Missões</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function confirmNewDay() {
+      const doneCount = state.missions.filter(m => m.completed).length;
+      const totalCount = state.missions.length;
+      const executed = doneCount > 0 || state.player.executedToday;
+
+      if (executed) {
+        state.player.streak = (Number(state.player.streak) || 0) + 1;
+      }
+
+      state.missions.forEach(m => { m.completed = false; });
+      state.player.executedToday = false;
+      state.player.lastActiveDate = new Date().toISOString().slice(0, 10);
+
+      pushLog('SYSTEM', `Novo dia iniciado • Streak: ${state.player.streak} dias`, `Ciclo anterior encerrado com ${doneCount}/${totalCount} missões concluídas.`, 0);
+      showToast(`Novo dia ativo! Streak: ${state.player.streak} dias`, 'success');
+      closeModal();
+      renderAll();
+    }
+
+    function openBackupModal() {
+      const jsonString = JSON.stringify(state, null, 2);
+      openModal('Backup & Restauração (JSON)', `
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <label class="block text-xs font-mono uppercase text-gray-400">Exportar Estado Atual</label>
+            <textarea id="backupExportArea" readonly rows="5" class="w-full bg-cockpit-bg border border-cockpit-border rounded-xl p-3 font-mono text-[11px] text-gray-400 focus:outline-none">${escapeHtml(jsonString)}</textarea>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="copyBackupJson()" class="px-3.5 py-2 rounded-xl bg-cockpit-elevated hover:bg-cockpit-border text-gray-200 border border-cockpit-border text-xs font-medium transition">Copiar JSON</button>
+              <button onclick="downloadBackupJson()" class="px-3.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 text-xs font-semibold transition">Baixar Arquivo .json</button>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-cockpit-border space-y-2">
+            <label class="block text-xs font-mono uppercase text-gray-400">Importar Backup (Cole o JSON abaixo)</label>
+            <textarea id="backupImportArea" rows="4" placeholder='{"player": ...}' class="w-full bg-cockpit-bg border border-cockpit-border focus:border-amber-500/60 focus:outline-none rounded-xl p-3 font-mono text-[11px] text-white"></textarea>
+            <div class="flex items-center justify-between gap-2 flex-wrap pt-1">
+              <label class="cursor-pointer px-3 py-2 rounded-xl bg-cockpit-elevated hover:bg-cockpit-border text-gray-300 border border-cockpit-border text-xs transition">
+                Carregar arquivo .json
+                <input type="file" accept=".json,application/json" onchange="handleBackupFile(event)" class="hidden" />
+              </label>
+              <button onclick="importBackupJson()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-cockpit-bg text-xs font-bold transition">Restaurar Dados</button>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    function copyBackupJson() {
+      const textarea = document.getElementById('backupExportArea');
+      if (!textarea) return;
+      textarea.select();
+      textarea.setSelectionRange(0, 999999);
+      try {
+        document.execCommand('copy');
+        showToast('Backup JSON copiado para a área de transferência.', 'success');
+      } catch (err) {
+        showToast('Não foi possível copiar automaticamente. Selecione e copie manualmente.', 'error');
+      }
+    }
+
+    function downloadBackupJson() {
+      try {
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `hud-soberania-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('Arquivo de backup baixado.', 'success');
+      } catch (err) {
+        showToast('Erro ao gerar download do backup.', 'error');
+      }
+    }
+
+    function handleBackupFile(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const area = document.getElementById('backupImportArea');
+        if (area) area.value = ev.target.result;
+        showToast('Arquivo carregado. Clique em "Restaurar Dados".', 'info');
+      };
+      reader.readAsText(file);
+    }
+
+    function importBackupJson() {
+      const raw = document.getElementById('backupImportArea')?.value.trim();
+      if (!raw) {
+        showToast('Cole um JSON válido ou carregue um arquivo.', 'error');
+        return;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed.player || !parsed.kpis) {
+          throw new Error('Estrutura de backup inválida.');
+        }
+        const defaults = getDefaultState();
+        state = {
+          ...defaults,
+          ...parsed,
+          player: { ...defaults.player, ...parsed.player },
+          kpis: { ...defaults.kpis, ...parsed.kpis },
+          attributes: { ...defaults.attributes, ...(parsed.attributes || {}) }
+        };
+        showToast('Backup restaurado com sucesso!', 'success');
+        closeModal();
+        renderAll();
+      } catch (err) {
+        showToast('JSON inválido. Verifique o conteúdo e tente novamente.', 'error');
+      }
+    }
+
+    // =========================================================
+    // INICIALIZAÇÃO
+    // =========================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      switchTab('hq');
+      renderAll();
+    });
+  </script>
+</body>
+</html>
