@@ -2150,10 +2150,15 @@
         const summaryTxt = (parts[4] || '-').trim();
         const bottleneckTxt = (parts[5] || '-').trim();
 
-        if (stageNum >= 1 && stageNum <= 5 && stageNum !== state.padock.stage) {
+       if (stageNum >= 1 && stageNum <= 5 && stageNum !== state.padock.stage) {
+          const isAdvance = stageNum > state.padock.stage;
           state.padock.stage = stageNum;
           revealedPills.push(`<span class="badge emerald">Padock → Estágio ${stageNum}</span>`);
           addLog('evolution', `🏎️ Padock.on avançou para o Estágio ${stageNum}!`);
+          if (isAdvance) {
+            const riff = playRandomRockRiff();
+            revealedPills.push(`<span class="badge gold">🎸 ${riff}</span>`);
+          }
         }
         if (summaryTxt && summaryTxt !== '-') {
           state.padock.summary = summaryTxt;
