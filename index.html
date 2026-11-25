@@ -2228,18 +2228,18 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
       };
 
       try {
-        const models = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
+        const models = ['gemini-3.8-flash', 'gemini-3.8-pro', 'gemini-2.5-flash'];
         let data = null;
-        let lastErr = '';
+        const errors = [];
         for (const m of models) {
           try {
             data = await callModel(m);
             break;
           } catch (err) {
-            lastErr = err.message;
+            errors.push(err.message);
           }
         }
-        if (!data) throw new Error(lastErr);
+        if (!data) throw new Error(errors.join(' | '));
         const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sem resposta da API.';
         state.chat.push({ role: 'ai', text: processMageActions(reply) });
       } catch (e) {
