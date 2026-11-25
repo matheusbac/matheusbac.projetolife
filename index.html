@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PROJETO BRAVA v3.1 — HUD da Soberania</title>
+  <title>PROJETO BRAVA v3.2 — HUD da Soberania</title>
   <style>
     :root {
       --bg-0: #060911;
@@ -238,13 +238,32 @@
       backdrop-filter: blur(8px);
       padding: 7px 13px;
       border-radius: 11px;
-      min-width: 108px;
+      min-width: 118px;
+      transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+    .stat-chip.xp-pulse {
+      border-color: var(--gold);
+      box-shadow: 0 0 24px rgba(245, 158, 11, 0.65);
     }
     .stat-chip .label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-2); }
-    .stat-chip .value { font-size: 1.08rem; font-weight: 800; color: var(--text-0); }
+    .stat-chip .value { font-size: 1.04rem; font-weight: 800; color: var(--text-0); }
     .stat-chip .value.cyan { color: var(--cyan); }
     .stat-chip .value.emerald { color: var(--emerald); }
     .stat-chip .value.gold { color: var(--gold); }
+    .xp-mini-track {
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.18);
+      margin-top: 5px;
+      overflow: hidden;
+    }
+    .xp-mini-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--cyan), var(--gold));
+      transition: width 0.5s ease;
+    }
 
     /* WEEKLY MENTOR CHALLENGE CARD */
     .mentor-challenge-card {
@@ -303,7 +322,6 @@
     .skin-stage-wrap.class-gold { border-color: rgba(245, 158, 11, 0.8); box-shadow: 0 0 22px rgba(245, 158, 11, 0.24); }
     .skin-stage-wrap.class-emerald { border-color: rgba(16, 185, 129, 0.8); box-shadow: 0 0 22px rgba(16, 185, 129, 0.24); }
     .skin-stage-wrap.class-purple { border-color: rgba(168, 85, 247, 0.82); box-shadow: 0 0 24px rgba(168, 85, 247, 0.26); }
-    .skin-stage-wrap.class-rose { border-color: rgba(244, 63, 94, 0.8); box-shadow: 0 0 22px rgba(244, 63, 94, 0.24); }
     .skin-stage-wrap.class-prismatic {
       border-color: transparent;
       background-image: linear-gradient(#060911, #060911), linear-gradient(135deg, #22d3ee, #10b981, #f59e0b, #a855f7);
@@ -341,9 +359,9 @@
       background: linear-gradient(0deg, rgba(6, 9, 17, 0.96) 28%, transparent 100%); z-index: 3;
     }
     .skin-stage-name { font-size: 0.88rem; font-weight: 800; color: #fff; line-height: 1.2; }
-    .skin-class-label { font-size: 0.7rem; color: var(--cyan); font-weight: 700; }
+    .skin-class-label { font-size: 0.74rem; color: var(--cyan); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
 
-    /* COMPACT PENTAGON (SIDE-BY-SIDE RADAR + BARS) */
+    /* COMPACT PENTAGON */
     .compact-radar-grid {
       display: grid;
       grid-template-columns: 158px 1fr;
@@ -355,7 +373,7 @@
     .progress-track { width: 100%; height: 7px; background: rgba(148, 163, 184, 0.14); border-radius: 999px; overflow: hidden; }
     .progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--emerald), var(--cyan)); transition: width 0.35s ease; }
 
-    /* COMPACT ELO GLOBAL (LEITURA PURA) */
+    /* COMPACT ELO GLOBAL */
     .elo-top-line { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
     .elo-big {
       font-size: 1.55rem; font-weight: 900;
@@ -392,7 +410,7 @@
     .fossil-list { list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 0.7rem; max-height: 98px; overflow-y: auto; }
     .fossil-list li { padding: 4px 8px; border-radius: 6px; background: rgba(244, 63, 94, 0.08); border-left: 2px solid var(--rose); color: var(--text-1); }
 
-    /* PADOCK.ON LAB CARD (COL 3) */
+    /* PADOCK.ON LAB CARD */
     .padock-card { border-color: rgba(34, 211, 238, 0.35); }
     .padock-card.stage-1 { border-color: rgba(34, 211, 238, 0.45); }
     .padock-card.stage-2 { border-color: rgba(245, 158, 11, 0.5); }
@@ -444,7 +462,7 @@
     .padock-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto; }
 
     /* ============================================================
-     * FAIXA 3: OPERAÇÃO DIÁRIA (EXCLUSIVA • GRID 3x2 + BUFFS AURA)
+     * FAIXA 3: OPERAÇÃO DIÁRIA + AURA MATINAL (ATÉ 09h59)
      * ============================================================ */
     .faixa-3-card { margin-bottom: 16px; position: relative; }
     .faixa-3-card.alvorada-active {
@@ -457,7 +475,7 @@
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
-      margin-bottom: 12px;
+      margin-bottom: 11px;
     }
     .ops-buff-pills { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
     .buff-pill {
@@ -485,6 +503,48 @@
       box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
     }
 
+    /* FAIXA AURA MATINAL */
+    .morning-aura-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      background: rgba(6, 9, 17, 0.65);
+      border: 1px dashed rgba(245, 158, 11, 0.32);
+      margin-bottom: 11px;
+    }
+    .morning-aura-label {
+      font-size: 0.71rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #fcd34d;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .morning-aura-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .aura-chip {
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.85);
+      color: var(--text-1);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .aura-chip:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--cyan); color: #fff; }
+    .aura-chip:disabled { cursor: default; }
+    .aura-chip.active-corrida { background: rgba(244, 63, 94, 0.18); border-color: #fb7185; color: #fda4af; box-shadow: 0 0 12px rgba(244, 63, 94, 0.28); }
+    .aura-chip.active-padock { background: rgba(34, 211, 238, 0.18); border-color: var(--cyan); color: #67e8f9; box-shadow: 0 0 12px rgba(34, 211, 238, 0.28); }
+    .aura-chip.active-piano { background: rgba(168, 85, 247, 0.2); border-color: var(--purple); color: #e9d5ff; box-shadow: 0 0 12px rgba(168, 85, 247, 0.28); }
+    .aura-chip.active-caminhada { background: rgba(16, 185, 129, 0.18); border-color: var(--emerald); color: #6ee7b7; box-shadow: 0 0 12px rgba(16, 185, 129, 0.28); }
+
     .modifier-strip {
       display: flex;
       justify-content: space-between;
@@ -505,14 +565,16 @@
     .modifier-info strong { color: var(--cyan); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
     .modifier-strip.triggered .modifier-info strong { color: #34d399; }
 
-    /* 3x2 MISSION GRID */
+    /* 3x2 MISSION GRID + EFEITOS DE AURA MATINAL */
     .ops-grid-3x2 {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
     }
     .mission-tile {
-      background: rgba(6, 9, 17, 0.62);
+      position: relative;
+      overflow: hidden;
+      background: rgba(6, 9, 17, 0.64);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 12px;
@@ -520,7 +582,7 @@
       flex-direction: column;
       justify-content: space-between;
       gap: 8px;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
     }
     .mission-tile.streak-core { box-shadow: inset 3px 0 0 var(--rose); }
     .mission-tile.streak-core.streak-safe { box-shadow: inset 3px 0 0 var(--emerald); border-color: rgba(16, 185, 129, 0.4); }
@@ -538,11 +600,85 @@
       background: linear-gradient(145deg, rgba(34, 211, 238, 0.09), rgba(6, 9, 17, 0.7));
       border-color: rgba(34, 211, 238, 0.35);
     }
+
+    /* AURA 1: CORRIDA MATINAL (Âmbar / Carmim Breathing Glow) */
+    .mission-tile.aura-corrida {
+      border-color: rgba(251, 113, 133, 0.75);
+      background: linear-gradient(145deg, rgba(244, 63, 94, 0.14), rgba(245, 158, 11, 0.08) 45%, rgba(6, 9, 17, 0.72));
+      animation: auraBreathCrimson 3.2s ease-in-out infinite;
+    }
+    @keyframes auraBreathCrimson {
+      0%, 100% { box-shadow: 0 0 12px rgba(244, 63, 94, 0.22); }
+      50% { box-shadow: 0 0 24px rgba(245, 158, 11, 0.38), inset 0 0 12px rgba(244, 63, 94, 0.14); }
+    }
+
+    /* AURA 2: SPRINT PADOCK (Azul-Ciano Metálico + Shimmer) */
+    .mission-tile.aura-padock {
+      border-color: rgba(34, 211, 238, 0.8);
+      background: linear-gradient(145deg, rgba(34, 211, 238, 0.14), rgba(6, 9, 17, 0.74));
+      box-shadow: 0 0 18px rgba(34, 211, 238, 0.24);
+    }
+    .mission-tile.aura-padock::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -120%; width: 70%; height: 100%;
+      background: linear-gradient(105deg, transparent, rgba(34, 211, 238, 0.14), transparent);
+      pointer-events: none;
+      animation: auraShimmer 4.5s ease-in-out infinite;
+    }
+    @keyframes auraShimmer {
+      0%, 60% { left: -120%; }
+      100% { left: 160%; }
+    }
+
+    /* AURA 3: PIANO (Brilho Ambiente Violeta / Dourado no canto superior) */
+    .mission-tile.aura-piano {
+      border-color: rgba(168, 85, 247, 0.75);
+      background:
+        radial-gradient(circle at 92% 8%, rgba(245, 158, 11, 0.24), transparent 42%),
+        radial-gradient(circle at 12% 10%, rgba(168, 85, 247, 0.22), transparent 52%),
+        rgba(6, 9, 17, 0.75);
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.22);
+    }
+
+    /* AURA 4: CAMINHADA (Filete Verde-Esmeralda iluminado no topo) */
+    .mission-tile.aura-caminhada {
+      border-color: rgba(16, 185, 129, 0.72);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.14) 0%, rgba(6, 9, 17, 0.74) 48%);
+      box-shadow: inset 0 3px 0 #10b981, 0 0 18px rgba(16, 185, 129, 0.2);
+    }
+
+    .aura-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.63rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 6px;
+      margin-top: 2px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
     .tile-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
     .tile-title { font-size: 0.84rem; font-weight: 800; line-height: 1.25; }
-    .tile-desc { font-size: 0.71rem; color: var(--text-2); line-height: 1.35; }
+    .tile-desc-clean {
+      font-size: 0.74rem;
+      color: var(--text-1);
+      line-height: 1.35;
+      min-height: 32px;
+      padding: 6px 8px;
+      border-radius: 7px;
+      background: rgba(15, 23, 42, 0.65);
+      border-left: 2px solid rgba(34, 211, 238, 0.45);
+      margin-top: 6px;
+    }
     .tile-micro {
-      font-size: 0.72rem;
+      font-size: 0.71rem;
       color: #e2e8f0;
       background: rgba(15, 23, 42, 0.75);
       border-left: 2px solid var(--purple);
@@ -562,7 +698,7 @@
     .seg-btn.active-100 { background: rgba(168, 85, 247, 0.26); color: #e9d5ff; border-color: var(--purple); box-shadow: 0 0 10px rgba(168, 85, 247, 0.28); }
 
     /* ============================================================
-     * FAIXA 4: TECNOMAGO+LOG (ESQUERDA) | CONSELHO 2x2 (DIREITA)
+     * FAIXA 4: PORTAL ÚNICO DO TECNOMAGO (SEM API) | CONSELHO 2x2
      * ============================================================ */
     .faixa-4-grid {
       display: grid;
@@ -572,43 +708,82 @@
       margin-bottom: 16px;
     }
 
-    /* PORTAL DO TECNOMAGO */
     .tower-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
     .tab-btn {
       flex: 1; padding: 7px 10px; background: rgba(6, 9, 17, 0.65); color: var(--text-2);
       border: 1px solid var(--border); border-radius: 9px; font-size: 0.78rem; font-weight: 700; cursor: pointer;
     }
     .tab-btn.active { background: rgba(34, 211, 238, 0.14); color: var(--cyan); border-color: var(--cyan); }
-    .mage-header {
-      display: flex; align-items: center; gap: 10px; padding-bottom: 8px;
-      border-bottom: 1px solid var(--border); margin-bottom: 8px;
-    }
-    .mage-avatar {
-      width: 42px; height: 42px; border-radius: 10px; object-fit: cover;
-      border: 2px solid var(--purple); background: #1e1b4b;
-    }
-    .chat-box {
-      height: 285px; overflow-y: auto; display: flex; flex-direction: column;
-      gap: 8px; padding-right: 4px; margin-bottom: 8px;
-    }
-    .msg { padding: 8px 11px; border-radius: 10px; font-size: 0.8rem; white-space: pre-wrap; max-width: 92%; line-height: 1.4; }
-    .msg-user { align-self: flex-end; background: rgba(34, 211, 238, 0.15); border: 1px solid rgba(34, 211, 238, 0.35); }
-    .msg-ai { align-self: flex-start; background: rgba(6, 9, 17, 0.75); border: 1px solid var(--border); }
-    .msg-sys {
-      align-self: center; font-size: 0.71rem; color: #34d399;
-      background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35);
-      padding: 3px 10px; border-radius: 999px;
-    }
-    .chips { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
-    .chip {
-      background: rgba(6, 9, 17, 0.75); color: var(--text-1); border: 1px solid var(--border);
-      padding: 4px 9px; font-size: 0.71rem; border-radius: 999px; cursor: pointer;
-    }
-    .chip:hover { border-color: var(--cyan); color: #fff; }
-    .chat-input-row { display: flex; gap: 7px; }
-    .chat-input-row textarea { flex: 1; height: 42px; resize: none; font-size: 0.8rem; }
 
-    .log-list { height: 348px; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; }
+    .portal-wrap { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .portal-hero {
+      position: relative;
+      width: 100%;
+      height: 225px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(168, 85, 247, 0.45);
+      background: radial-gradient(circle at 50% 30%, #1e1b4b, #060911 80%);
+      box-shadow: 0 0 24px rgba(168, 85, 247, 0.16);
+    }
+    .portal-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 22%;
+      display: block;
+    }
+    .portal-hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, rgba(6, 9, 17, 0.92) 8%, transparent 58%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 12px 14px;
+    }
+    .portal-badge {
+      align-self: flex-start;
+      font-size: 0.64rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      color: #6ee7b7;
+      margin-bottom: 5px;
+    }
+    .portal-title { font-size: 1rem; font-weight: 800; color: #fff; }
+    .portal-sub { font-size: 0.72rem; color: var(--text-2); }
+
+    .sync-reveal-box {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(6, 9, 17, 0.72);
+      border: 1px solid var(--border);
+      font-size: 0.76rem;
+      color: var(--text-1);
+      min-height: 46px;
+      transition: all 0.3s ease;
+    }
+    .sync-reveal-box.revealed {
+      border-color: rgba(16, 185, 129, 0.65);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(34, 211, 238, 0.08));
+      color: #ecfdf5;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.18);
+    }
+    .sync-reveal-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+    .sync-code-input {
+      font-family: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.77rem;
+      color: #4ade80;
+      resize: none;
+    }
+    .portal-actions { display: grid; grid-template-columns: 1.6fr 1fr; gap: 8px; }
+
+    .log-list { height: 390px; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; }
     .log-entry {
       padding: 7px 10px; border-radius: 8px; background: rgba(6, 9, 17, 0.58);
       border-left: 3px solid var(--cyan); font-size: 0.75rem; color: var(--text-1);
@@ -645,7 +820,7 @@
     .mentor-btn-row .btn-xs { padding: 4px 2px; font-size: 0.66rem; }
 
     /* ============================================================
-     * FAIXA 5: AGENDA POR DATA (ESQ) | TEMPORADAS & LEITURA (DIR)
+     * FAIXA 5: AGENDA POR DATA | TEMPORADAS & LEITURA
      * ============================================================ */
     .faixa-5-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
     .form-grid { display: grid; grid-template-columns: 1.5fr 1fr 0.95fr 0.6fr auto; gap: 6px; margin-bottom: 11px; }
@@ -681,6 +856,81 @@
     .evo-locked-silhouette { display: flex; flex-direction: column; align-items: center; gap: 7px; color: var(--text-2); padding: 12px; text-align: center; }
     .evo-slot-footer { padding: 9px 10px; display: flex; flex-direction: column; gap: 5px; }
 
+    /* LEVEL UP FLOATING BANNER */
+    .levelup-banner {
+      position: fixed;
+      top: 22px;
+      left: 50%;
+      transform: translate(-50%, -26px) scale(0.92);
+      z-index: 2300;
+      padding: 14px 28px;
+      border-radius: 14px;
+      background: radial-gradient(circle at center, rgba(245, 158, 11, 0.28), rgba(12, 18, 32, 0.96) 72%);
+      border: 1px solid rgba(245, 158, 11, 0.85);
+      box-shadow: 0 0 36px rgba(245, 158, 11, 0.45), var(--shadow);
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .levelup-banner.show {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+    .levelup-kicker { font-size: 0.68rem; font-weight: 900; letter-spacing: 0.2em; color: #fcd34d; text-transform: uppercase; }
+    .levelup-main { font-size: 1.35rem; font-weight: 900; color: #fff; margin-top: 2px; }
+
+    /* CLASS ASCENSION MODAL (GLASSMORPHISM + FEIXE METÁLICO) */
+    .ascension-overlay {
+      position: fixed; inset: 0; z-index: 2100; display: none; align-items: center; justify-content: center;
+      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.88), rgba(2, 6, 23, 0.96) 72%);
+      backdrop-filter: blur(14px); padding: 20px; overflow: hidden;
+    }
+    .ascension-overlay.open { display: flex; }
+    .ascension-card {
+      position: relative;
+      overflow: hidden;
+      max-width: 480px;
+      width: 100%;
+      padding: 30px 26px;
+      border-radius: 20px;
+      text-align: center;
+      background: linear-gradient(160deg, rgba(18, 27, 47, 0.92), rgba(6, 9, 17, 0.96));
+      border: 1px solid var(--asc-accent, #f59e0b);
+      box-shadow: 0 0 60px rgba(245, 158, 11, 0.28), var(--shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .ascension-card::before {
+      content: '';
+      position: absolute;
+      top: -20%; left: -120%; width: 65%; height: 140%;
+      background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.24), transparent);
+      transform: skewX(-18deg);
+      animation: metalBeam 2.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes metalBeam {
+      0% { left: -120%; }
+      55%, 100% { left: 160%; }
+    }
+    .ascension-emblem {
+      width: 74px; height: 74px; border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 2px solid var(--asc-accent, #f59e0b);
+      box-shadow: 0 0 28px var(--asc-accent, #f59e0b);
+    }
+    .ascension-transition {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 1.18rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .ascension-old { color: var(--text-2); text-decoration: line-through; font-size: 0.95rem; }
+    .ascension-new { color: var(--asc-accent, #fbbf24); text-shadow: 0 0 18px var(--asc-accent, #fbbf24); }
+
     /* CINEMATIC SKIN UNLOCK OVERLAY */
     .evo-overlay {
       position: fixed; inset: 0; z-index: 2000; display: none; align-items: center; justify-content: center;
@@ -710,7 +960,7 @@
     .toast {
       position: fixed; bottom: 20px; right: 20px; background: #0f172a; border: 1px solid var(--cyan);
       color: var(--text-0); padding: 11px 15px; border-radius: 11px; font-size: 0.82rem; font-weight: 600;
-      box-shadow: var(--shadow); z-index: 2200; opacity: 0; transform: translateY(12px);
+      box-shadow: var(--shadow); z-index: 2400; opacity: 0; transform: translateY(12px);
       pointer-events: none; transition: all 0.25s ease; max-width: 380px;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
@@ -724,7 +974,7 @@
       .faixa-4-grid, .faixa-5-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 760px) {
-      .faixa-2-grid, .ops-grid-3x2, .council-grid-2x2, .season-grid, .form-grid, .compact-radar-grid { grid-template-columns: 1fr; }
+      .faixa-2-grid, .ops-grid-3x2, .council-grid-2x2, .season-grid, .form-grid, .compact-radar-grid, .portal-actions { grid-template-columns: 1fr; }
       .faixa-2-grid > :last-child { grid-column: span 1; }
       .mentor-challenge-grid { grid-template-columns: 1fr; }
       .evo-gallery { grid-template-columns: repeat(2, 1fr); }
@@ -737,16 +987,16 @@
     <!-- TOP BAR -->
     <header class="topbar">
       <div class="brand">
-        <span class="brand-badge">v3.1 RPG HUD</span>
+        <span class="brand-badge">v3.2 RPG HUD</span>
         <h1>Projeto Brava</h1>
       </div>
       <div class="top-actions">
         <button class="btn btn-sm" onclick="scrollToEl('faixa3Ops')">↓ Operação</button>
-        <button class="btn btn-sm" onclick="scrollToEl('faixa4Tower')">🧙 Tecnomago</button>
+        <button class="btn btn-sm" onclick="scrollToEl('faixa4Tower')">🧙 Portal</button>
         <button class="btn btn-sm" onclick="exportBackup()">⬇ Exportar JSON</button>
         <button class="btn btn-sm" onclick="document.getElementById('importFile').click()">⬆ Importar JSON</button>
         <input type="file" id="importFile" accept=".json" class="hidden" onchange="importBackup(event)" />
-        <button class="btn btn-sm" onclick="openSettingsModal()">⚙ Config / API & Simulação</button>
+        <button class="btn btn-sm" onclick="openSettingsModal()">⚙ Config & Simulação</button>
       </div>
     </header>
 
@@ -761,19 +1011,20 @@
             <span>●</span> <span id="heroStatusText">PRAIA BRAVA • OPERAÇÃO PADOCK.ON</span>
           </div>
           <div style="display:flex; gap:7px; flex-wrap:wrap;">
-            <div class="status-pill" id="heroModePill">DIA 0 — CALIBRAÇÃO</div>
-            <div class="status-pill" id="heroDatePill">24/11/2026</div>
+            <div class="status-pill" id="heroModePill">OFICIAL • v3.2</div>
+            <div class="status-pill" id="heroDatePill">25/11/2026</div>
           </div>
         </div>
         <div class="hero-bottom-row">
           <div class="hero-identity">
-            <h2 id="heroTitle">Matheus • Arquiteto da Soberania</h2>
+            <h2 id="heroTitle">Matheus • Dev</h2>
             <p id="heroSubtitle">Arco 1: Padock.on → Temporada 2: Viagem à Terra Natal • Virada automática às 01h00</p>
           </div>
           <div class="hero-stats">
-            <div class="stat-chip">
-              <div class="label">Nível / XP</div>
+            <div class="stat-chip" id="hudLevelXpChip">
+              <div class="label" id="hudClassTop">CLASSE: DEV</div>
               <div class="value cyan" id="hudLevelXp">LVL 1 • 0 XP</div>
+              <div class="xp-mini-track"><div class="xp-mini-fill" id="hudXpBarFill" style="width:0%;"></div></div>
             </div>
             <div class="stat-chip">
               <div class="label">Streak Padock</div>
@@ -788,7 +1039,7 @@
       </div>
     </section>
 
-    <!-- CHAMADA SEMANAL DO CONSELHO (VISÍVEL APENAS NO DIA SORTEADO) -->
+    <!-- CHAMADA SEMANAL DO CONSELHO -->
     <section class="card mentor-challenge-card hidden" id="mentorChallengeCard">
       <div class="card-header">
         <div>
@@ -817,9 +1068,8 @@
           <div id="mcWrittenFlow" class="hidden">
             <textarea id="mcAnswerInput" rows="3" placeholder="Write your answer in English here (clarity, past tense, prepositions, B2B ROI)..."></textarea>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:9px;">
-              <button class="btn btn-purple" onclick="sendWeeklyChallengeToMage()">🧙 Enviar para o Tecnomago avaliar</button>
-              <button class="btn" onclick="copyChallengeForEval()">📋 Copiar (Plano B)</button>
-              <button class="btn btn-gold" onclick="validateWrittenChallenge()">🏆 Validar Vitória (Manual)</button>
+              <button class="btn btn-purple" onclick="copyChallengeForEval()">📋 Copiar p/ Avaliar no Chat</button>
+              <button class="btn btn-gold" onclick="validateWrittenChallenge()">🏆 Validar Vitória</button>
             </div>
           </div>
         </div>
@@ -846,7 +1096,7 @@
           <div class="skin-scanlines"></div>
           <div class="skin-bottom-bar">
             <div class="skin-stage-name" id="skinStageTitle">O Operador das Sombras</div>
-            <div class="skin-class-label" id="skinClassLabel">Classe: Estrategista</div>
+            <div class="skin-class-label" id="skinClassLabel">Classe: Dev</div>
           </div>
         </div>
 
@@ -855,9 +1105,8 @@
         </button>
       </div>
 
-      <!-- COL 2: PENTÁGONO COMPACTO + ELO GLOBAL (LEITURA PURA) -->
+      <!-- COL 2: PENTÁGONO COMPACTO + ELO GLOBAL -->
       <div class="col2-stack">
-        <!-- PENTÁGONO COMPACTO -->
         <div class="card">
           <div class="card-header" style="margin-bottom:8px;">
             <div class="card-title">⬟ Pentágono de Atributos</div>
@@ -869,7 +1118,6 @@
           </div>
         </div>
 
-        <!-- ELO GLOBAL (LEITURA PURA) -->
         <div class="card card-flex" style="flex:1;">
           <div class="card-header" style="margin-bottom:6px;">
             <div>
@@ -920,7 +1168,7 @@
         </div>
       </div>
 
-      <!-- COL 3: PADOCK.ON (ESTÁGIOS EVOLUTIVOS 1 A 5) -->
+      <!-- COL 3: PADOCK.ON -->
       <div class="card card-flex padock-card stage-1" id="padockCard">
         <div class="card-header" style="margin-bottom:9px;">
           <div class="card-title">🏎️ Padock.on • Laboratório</div>
@@ -952,14 +1200,14 @@
         </div>
 
         <div class="padock-actions">
-          <button class="btn btn-sm" onclick="copyPadockPrompt()">📋 Copiar Prompt</button>
-          <button class="btn btn-gold btn-sm" onclick="prepPadockSync()">🔄 Sincronizar</button>
+          <button class="btn btn-sm" onclick="copyPadockPrompt()">📋 Protocolo TMG-PDK</button>
+          <button class="btn btn-gold btn-sm" onclick="prepPadockSync()">⚡ Colar Código</button>
         </div>
       </div>
     </section>
 
     <!-- ============================================================
-     * FAIXA 3: OPERAÇÃO DIÁRIA (EXCLUSIVA • GRID 3x2)
+     * FAIXA 3: OPERAÇÃO DIÁRIA (AURA MATINAL + GRID 3x2 LIMPO)
      * ============================================================ -->
     <section class="card faixa-3-card" id="faixa3Ops">
       <div class="ops-top-bar">
@@ -972,6 +1220,9 @@
           <button class="btn btn-primary btn-sm" id="closeDayBtn" onclick="closeDayManual()">🌙 Encerrar Dia & Processar XP</button>
         </div>
       </div>
+
+      <!-- FAIXA AURA MATINAL (VISÍVEL ATÉ 09h59; APÓS 10h00 SÓ MOSTRA ATIVAS) -->
+      <div class="morning-aura-strip" id="morningAuraStrip"></div>
 
       <!-- MODIFICADOR AUTOMÁTICO DO DIA -->
       <div class="modifier-strip" id="modifierStrip">
@@ -987,37 +1238,35 @@
     </section>
 
     <!-- ============================================================
-     * FAIXA 4: PORTAL DO TECNOMAGO + LOG (ESQ) | CONSELHO 2x2 (DIR)
+     * FAIXA 4: PORTAL ÚNICO DO TECNOMAGO + LOG | CONSELHO 2x2
      * ============================================================ -->
     <section class="faixa-4-grid" id="faixa4Tower">
-      <!-- ESQUERDA: PORTAL DO TECNOMAGO + LOG -->
+      <!-- ESQUERDA: PORTAL ÚNICO DO TECNOMAGO (OFFLINE) + LOG -->
       <div class="card card-flex">
         <div class="tower-tabs">
           <button id="tabMage" class="tab-btn active" onclick="switchTowerTab('mage')">🧙 Portal do Tecnomago</button>
           <button id="tabLog" class="tab-btn" onclick="switchTowerTab('log')">📜 Log de Batalha (<span id="logCountTab">0</span>)</button>
         </div>
 
-        <div id="magePanel">
-          <div class="mage-header">
-            <img class="mage-avatar" src="mestre.jpg" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 50 50%22><rect width=%2250%22 height=%2250%22 fill=%22%231e1b4b%22/><text x=%2225%22 y=%2232%22 font-size=%2222%22 text-anchor=%22middle%22 fill=%22%23a855f7%22>🧙</text></svg>'" />
-            <div>
-              <div style="font-weight:800; font-size:0.86rem;">Tecnomago — Guardião da v3.1</div>
-              <div style="font-size:0.71rem; color:var(--text-2);" id="apiStatusText">Chave Gemini não configurada</div>
+        <div id="magePanel" class="portal-wrap">
+          <div class="portal-hero">
+            <img src="mestre.jpg" alt="Tecnomago" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 220%22><rect width=%22400%22 height=%22220%22 fill=%22%231e1b4b%22/><text x=%22200%22 y=%22125%22 font-size=%2264%22 text-anchor=%22middle%22 fill=%22%23a855f7%22>🧙</text></svg>'" />
+            <div class="portal-hero-overlay">
+              <span class="portal-badge">PORTAL DE SINCRONIZAÇÃO • 100% OFFLINE</span>
+              <div class="portal-title">Tecnomago — Decodificador de Telemetria</div>
+              <div class="portal-sub">Aceita códigos secretos TMG-BRV:: e TMG-PDK:: (anti-duplicata & anti-farm ativos)</div>
             </div>
           </div>
 
-          <div class="chat-box" id="chatBox"></div>
-
-          <div class="chips">
-            <button class="chip" onclick="prefillChat('Fiz a Caminhada da Sabedoria ouvindo 20 min de ')">🎧 Caminhada</button>
-            <button class="chip" onclick="prefillChat('Treinei hoje: ')">🏋️ Treino / PR</button>
-            <button class="chip" onclick="prefillChat('Evento Raro: ')">⚡ Evento Raro</button>
-            <button class="chip" onclick="prepPadockSync()">🔄 Sync Padock</button>
+          <div class="sync-reveal-box" id="syncRevealBox">
+            Cole abaixo o código secreto gerado no chat do Mestre ou da Padock.on para revelar e aplicar seus ganhos.
           </div>
 
-          <div class="chat-input-row">
-            <textarea id="chatInput" placeholder="Relate treino, corrida, caminhada, inglês ou cole a telemetria..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
-            <button class="btn btn-primary" id="sendChatBtn" onclick="sendChat()">Enviar</button>
+          <textarea id="secretCodeInput" class="sync-code-input" rows="2" placeholder="Cole aqui: TMG-PDK::2511A|... ou TMG-BRV::2511A|..."></textarea>
+
+          <div class="portal-actions">
+            <button class="btn btn-primary" onclick="decodeSecretTelemetry()">⚡ Decodificar & Aplicar</button>
+            <button class="btn" onclick="copyStateForMaster()">📋 Copiar Status</button>
           </div>
         </div>
 
@@ -1044,10 +1293,9 @@
     </section>
 
     <!-- ============================================================
-     * FAIXA 5: AGENDA POR DATA (ESQ) | TEMPORADAS & LEITURA (DIR)
+     * FAIXA 5: AGENDA POR DATA | TEMPORADAS & LEITURA
      * ============================================================ -->
     <section class="faixa-5-grid">
-      <!-- ESQUERDA: MISSÕES AGENDADAS POR DATA -->
       <div class="card">
         <div class="card-header">
           <div>
@@ -1073,7 +1321,6 @@
         <div class="sched-list" id="scheduledList"></div>
       </div>
 
-      <!-- DIREITA: TEMPORADAS, ARCO 1 & QUESTS DE LEITURA -->
       <div class="card">
         <div class="card-header">
           <div class="card-title">🗺 Temporadas, Arco 1 & Quests de Leitura</div>
@@ -1127,7 +1374,7 @@
     </section>
   </div>
 
-  <!-- MODAL EVOLUÇÕES CONQUISTADAS (100% ANTI-SPOILER) -->
+  <!-- MODAL EVOLUÇÕES CONQUISTADAS -->
   <div class="modal-backdrop" id="evolutionsModal">
     <div class="modal modal-wide">
       <div class="card-header">
@@ -1141,22 +1388,22 @@
     </div>
   </div>
 
-  <!-- MODAL CONFIGURAÇÕES / API / SIMULAÇÃO -->
+  <!-- MODAL CONFIGURAÇÕES & SIMULAÇÃO -->
   <div class="modal-backdrop" id="settingsModal">
     <div class="modal">
       <div class="card-header">
-        <div class="card-title">⚙ Config, API Gemini & Simulação</div>
+        <div class="card-title">⚙ Config, Sons & Simulação</div>
         <button class="btn btn-xs" onclick="closeModal('settingsModal')">✕</button>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:13px;">
         <div style="padding:12px; border-radius:10px; background:rgba(6,9,17,0.65); border:1px solid var(--border);">
-          <strong style="font-size:0.82rem; color:var(--cyan); display:block; margin-bottom:6px;">🔑 Chave Gratuita API Gemini (salva apenas no navegador)</strong>
-          <input type="password" id="apiKeyInput" placeholder="AIza..." style="margin-bottom:8px;" />
+          <strong style="font-size:0.82rem; color:var(--cyan); display:block; margin-bottom:8px;">🔊 Áudio & Preview de Efeitos (Web Audio API Offline)</strong>
           <div style="display:flex; gap:7px; flex-wrap:wrap;">
-            <button class="btn btn-primary btn-sm" onclick="saveApiKey()">Salvar Chave API</button>
-            <button class="btn btn-sm" onclick="testRockRiff()">🎸 Testar Riff</button>
             <button class="btn btn-sm" id="muteBtn" onclick="toggleMute()">🔊 Som: ON</button>
+            <button class="btn btn-sm" onclick="triggerLevelUpFX(getLevelInfo(state.xp).level + 1)">✨ Testar Level Up</button>
+            <button class="btn btn-gold btn-sm" onclick="openClassAscension(CLASS_TIERS[0], CLASS_TIERS[1])">👑 Testar Ascensão</button>
+            <button class="btn btn-sm" onclick="testRockRiff()">🎸 Testar Riff</button>
           </div>
         </div>
 
@@ -1184,7 +1431,7 @@
 
         <div style="padding:12px; border-radius:10px; background:rgba(244,63,94,0.08); border:1px solid rgba(244,63,94,0.3);">
           <strong style="font-size:0.82rem; color:#fda4af; display:block; margin-bottom:6px;">⚠ Zona de Reset</strong>
-          <button class="btn btn-danger btn-sm" onclick="hardReset()">Resetar Projeto Brava v3.1</button>
+          <button class="btn btn-danger btn-sm" onclick="hardReset()">Resetar Projeto Brava v3.2</button>
         </div>
       </div>
     </div>
@@ -1214,7 +1461,28 @@
     </div>
   </div>
 
-  <!-- OVERLAY CINEMATOGRÁFICO DE DESBLOQUEIO (COM BOTÃO DE REVELAÇÃO PARA GARANTIR ÁUDIO) -->
+  <!-- BANNER FLUTUANTE DE LEVEL UP -->
+  <div class="levelup-banner" id="levelUpBanner">
+    <div class="levelup-kicker">⚡ EVOLUÇÃO DE NÍVEL ⚡</div>
+    <div class="levelup-main" id="levelUpText">NÍVEL 2 ALCANÇADO</div>
+  </div>
+
+  <!-- MODAL DE ASCENSÃO DE CLASSE -->
+  <div class="ascension-overlay" id="classAscensionOverlay">
+    <div class="ascension-card" id="ascensionCard">
+      <div class="badge gold">👑 ASCENSÃO DE CLASSE DESBLOQUEADA</div>
+      <div class="ascension-emblem" id="ascEmblem">⚡</div>
+      <div class="ascension-transition">
+        <span class="ascension-old" id="ascOldClass">DEV</span>
+        <span>→</span>
+        <span class="ascension-new" id="ascNewClass">BUSINESSMAN</span>
+      </div>
+      <p class="evo-subtitle-big" id="ascFlavor">Vendas, prospecção, caixa e primeiros clientes.</p>
+      <button class="btn btn-gold" style="padding:11px 26px; margin-top:4px;" onclick="closeClassAscension()">⚡ Confirmar Ascensão</button>
+    </div>
+  </div>
+
+  <!-- OVERLAY CINEMATOGRÁFICO DE DESBLOQUEIO DE SKIN -->
   <div class="evo-overlay" id="evoOverlay">
     <div class="evo-shockwave"></div>
     <div class="evo-shockwave w2"></div>
@@ -1237,10 +1505,56 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    /* MANTÉM A MESMA CHAVE DA v3.1 PARA PRESERVAR 100% DOS SEUS DADOS */
     const STORAGE_KEY = 'projeto_brava_v3_1';
     const LEGACY_KEYS = ['projeto_brava_v3_0', 'projeto_brava_v2_2', 'projeto_brava_v2_1'];
     const OFFICIAL_START = '2026-11-25';
     const COMMERCIAL_UNLOCK_DATE = '2026-12-04';
+
+    /* ÁRVORE REAL DE CLASSES POR NÍVEL (v3.2) */
+    const CLASS_TIERS = [
+      { minLvl: 1,  name: 'Dev',         icon: '💻', css: 'class-cyan',      color: '#22d3ee', flavor: 'Construção técnica, produto sólido e base inabalável.' },
+      { minLvl: 5,  name: 'Businessman', icon: '💼', css: 'class-gold',      color: '#f59e0b', flavor: 'Prospecção ativa, fechamento de contratos e geração de caixa.' },
+      { minLvl: 10, name: 'Founder',     icon: '🚀', css: 'class-emerald',   color: '#10b981', flavor: 'Operação estruturada, receita recorrente e marca consolidada.' },
+      { minLvl: 15, name: 'Investor',    icon: '📈', css: 'class-purple',    color: '#a855f7', flavor: 'Alocação inteligente de capital, patrimônio e ativos compostos.' },
+      { minLvl: 20, name: 'Sovereign',   icon: '👑', css: 'class-prismatic', color: '#22d3ee', flavor: 'Autonomia plena: liberdade geográfica, financeira e de tempo.' }
+    ];
+
+    /* AURAS MATINAIS (DISPONÍVEIS ATÉ 09h59 • +20% XP + 0.5 ATRIBUTO AO FECHAR 100%) */
+    const MORNING_AURAS = [
+      { id: 'corrida',   label: '🏃 Corrida Matinal',  missionKey: 'treino',   attr: 'fisico',     attrShort: 'FÍS', tileCss: 'aura-corrida',   chipCss: 'active-corrida' },
+      { id: 'padock',    label: '⚡ Sprint Padock',    missionKey: 'padock',   attr: 'engenharia', attrShort: 'ENG', tileCss: 'aura-padock',    chipCss: 'active-padock' },
+      { id: 'piano',     label: '🎹 Piano',            missionKey: 'conselho', attr: 'intelecto',  attrShort: 'INT', tileCss: 'aura-piano',     chipCss: 'active-piano' },
+      { id: 'caminhada', label: '🚶 Caminhada Trab.',  missionKey: 'ingles',   attr: 'disciplina', attrShort: 'DIS', tileCss: 'aura-caminhada', chipCss: 'active-caminhada' }
+    ];
+
+    /* DESCRIÇÕES LIMPAS POR PORCENTAGEM CLICADA (v3.2) */
+    const MISSION_TIERS = {
+      padock: {
+        0:   'Não iniciado. (Meta mínima de Streak: 70%)',
+        40:  '1 entrega concluída (feature front-end, página ou landing).',
+        70:  '2 entregas concluídas — Streak garantido.',
+        100: '3 entregas ou marco extraordinário concluído.'
+      },
+      treino: {
+        0:   'Não treinado hoje.',
+        40:  'Mínimo viável: 25–30 min ou corrida de 3–5 km.',
+        70:  'Treino completo: sessão cheia ou corrida de 6–9 km.',
+        100: 'Modo Monstro: Combo Híbrido, 10 km+ ou novo PR.'
+      },
+      ingles: {
+        0:   'Sem imersão registrada hoje.',
+        40:  'Imersão passiva: 20 min+ sem legendas em PT.',
+        70:  'Input + Output: shadowing, leitura ou 2+ chunks.',
+        100: 'Combate real: pitch, texto técnico ou avaliação.'
+      },
+      conselho: {
+        0:   'Bloco do mentor ainda não iniciado.',
+        40:  '15–20 min de conteúdo do mentor (+0.25h afinidade).',
+        70:  'Conteúdo + micro-missão do dia (+0.5h afinidade).',
+        100: 'Princípio aplicado na prática hoje (+1.0h afinidade).'
+      }
+    };
 
     /* 5 ESTÁGIOS DA PADOCK.ON */
     const PADOCK_STAGES = [
@@ -1261,7 +1575,7 @@
       { stage: 6, title: 'Soberano da Brava', accent: '#10b981', flavor: 'Endgame concluído: liberdade geográfica, física e financeira na Praia Brava.' }
     ];
 
-    /* CONSELHO INTERNO (QUARTETO v2.3) */
+    /* CONSELHO INTERNO */
     const MENTORS = [
       { id: 'dan-koe', name: 'Dan Koe', specialty: 'Foco, Disciplina & Mentalidade', avatarBase: 'dan-koe', bannerBase: 'banner-dan-koe', initials: 'DK' },
       { id: 'michia', name: 'Michia Rohrssen', specialty: 'Execução Brutal & Outbound', avatarBase: 'michia', bannerBase: 'banner-michia', initials: 'MR' },
@@ -1269,7 +1583,6 @@
       { id: 'dan-martell', name: 'Dan Martell', specialty: 'SaaS/WaaS & Escala B2B', avatarBase: 'dan-martell', bannerBase: 'banner-dan-martell', initials: 'DM' }
     ];
 
-    /* 3 MICRO-MISSÕES LEVES POR MENTOR (BLOCO DO CONSELHO NA FAIXA 3) */
     const MENTOR_MICRO_MISSIONS = {
       'dan-koe': [
         'Anote 1 distração que quebrou seu foco ontem e elimine-a antes de abrir a Padock.on.',
@@ -1293,7 +1606,6 @@
       ]
     };
 
-    /* PERGUNTAS DA CHAMADA SEMANAL DO CONSELHO */
     const DEFAULT_QUESTIONS = {
       'dan-koe': [
         { id: 'dk_alcohol', type: 'binary', phase: 'any', text: 'Hey, did you drink any alcohol in the last 10 days?' },
@@ -1321,7 +1633,6 @@
       ]
     };
 
-    /* POOL DE MISSÕES RELÂMPAGO */
     const LIGHTNING_POOL = [
       { id: 'run_10k', title: 'Correr 10 km', attr: 'fisico', attrGain: 0.6, xp: 55, commercialOnly: false, weekendSpecial: false },
       { id: 'fasted_run', title: 'Corrida matinal em jejum', attr: 'fisico', attrGain: 0.45, xp: 40, commercialOnly: false, weekendSpecial: false },
@@ -1332,7 +1643,6 @@
       { id: 'apostle_notebook', title: 'Revisar as anotações do Caderno do Apóstolo', attr: 'intelecto', attrGain: 0.35, xp: 35, commercialOnly: false, weekendSpecial: false }
     ];
 
-    /* MODIFICADORES DO DIA (INTEGRADOS COM ESCALA 0/40/70/100%) */
     const DAY_MODIFIERS = [
       {
         id: 'body_mind',
@@ -1388,16 +1698,141 @@
       { id: 'visit_1211', date: '2026-12-11', title: 'Prospecção Presencial Padock.on — 12 Revendas (Boss Final)', attr: 'comercial', xp: 120, done: false }
     ];
 
-    /* MOTOR DE ÁUDIO ROCK (1/3 PROBABILIDADE + FALLBACK SYNTH) */
     const ROCK_TRACKS = [
       { name: 'AC/DC — Highway to Hell', file: 'highway.mp3', notes: [220, 220, 220, 0, 185, 185, 196, 196, 185, 185, 196, 146.8] },
       { name: 'The White Stripes — Seven Nation Army', file: 'seven_nation.mp3', notes: [164.8, 0, 164.8, 196, 164.8, 146.8, 130.8, 123.5] },
       { name: 'Black Sabbath — Iron Man', file: 'iron_man.mp3', notes: [123.5, 146.8, 146.8, 164.8, 164.8, 196, 185, 196, 185, 146.8, 146.8, 164.8] }
     ];
 
-    let isSendingChat = false;
     let evolutionQueue = [];
     let currentOverlayStage = null;
+    let levelUpTimer = null;
+
+    /* ============================================================
+     * CURVA DE XP & PROGRESSÃO DE CLASSES (v3.2)
+     * Lvl 1→5 (~2.8k XP / ~20d) | Lvl 10 (~10.8k / ~75d) | Lvl 15 (~23.8k / ~165d) | Lvl 20 (~41.8k / ~290d)
+     * ============================================================ */
+    function xpNeededForNextLevel(lvl) {
+      return 400 + (lvl - 1) * 200;
+    }
+
+    function getLevelInfo(totalXp) {
+      let lvl = 1;
+      let rem = Math.max(0, Math.floor(totalXp || 0));
+      let needed = xpNeededForNextLevel(lvl);
+      while (rem >= needed) {
+        rem -= needed;
+        lvl++;
+        needed = xpNeededForNextLevel(lvl);
+      }
+      return { level: lvl, currentXp: rem, nextLevelXp: needed, pct: Math.min(100, (rem / needed) * 100) };
+    }
+
+    function getClassForLevel(lvl) {
+      let cls = CLASS_TIERS[0];
+      for (const tier of CLASS_TIERS) {
+        if (lvl >= tier.minLvl) cls = tier;
+      }
+      return cls;
+    }
+
+    /* VERIFICA SUBIDA DE NÍVEL / CLASSE APÓS QUALQUER GANHO DE XP */
+    function applyXpWithProgression(deltaXp) {
+      if (deltaXp <= 0) return;
+      const beforeLvl = getLevelInfo(state.xp).level;
+      const beforeCls = getClassForLevel(beforeLvl);
+      state.xp += deltaXp;
+      const afterLvl = getLevelInfo(state.xp).level;
+      const afterCls = getClassForLevel(afterLvl);
+
+      if (afterCls.name !== beforeCls.name) {
+        addLog('evolution', `👑 ASCENSÃO DE CLASSE! Nível ${afterLvl} — ${beforeCls.name} → ${afterCls.name}.`);
+        setTimeout(() => openClassAscension(beforeCls, afterCls), 300);
+      } else if (afterLvl > beforeLvl) {
+        addLog('evolution', `⚡ LEVEL UP! Você alcançou o Nível ${afterLvl} (${afterCls.name}).`);
+        setTimeout(() => triggerLevelUpFX(afterLvl), 200);
+      }
+    }
+
+    /* ============================================================
+     * MOTOR DE ÁUDIO WEB AUDIO API (100% OFFLINE)
+     * ============================================================ */
+    function playLevelUpSound() {
+      if (state.muted) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        let t = ctx.currentTime + 0.02;
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.001, t);
+          gain.gain.linearRampToValueAtTime(0.14, t + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + (i === 3 ? 0.45 : 0.16));
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + (i === 3 ? 0.48 : 0.18));
+          t += 0.09;
+        });
+      } catch (e) {}
+    }
+
+    function playClassAscensionSound() {
+      if (state.muted) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime + 0.02;
+        // Acorde grave + brilho metálico (D2, A2, D3, F#3, A3, D4)
+        const chord = [146.83, 220.0, 293.66, 369.99, 440.0, 587.33];
+        chord.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = idx < 2 ? 'sawtooth' : 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.045);
+          gain.gain.setValueAtTime(0.001, now + idx * 0.045);
+          gain.gain.linearRampToValueAtTime(idx < 2 ? 0.07 : 0.11, now + idx * 0.045 + 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.0008, now + 1.65);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.045);
+          osc.stop(now + 1.7);
+        });
+      } catch (e) {}
+    }
+
+    function triggerLevelUpFX(newLevel) {
+      playLevelUpSound();
+      const chip = document.getElementById('hudLevelXpChip');
+      if (chip) {
+        chip.classList.add('xp-pulse');
+        setTimeout(() => chip.classList.remove('xp-pulse'), 2200);
+      }
+      const banner = document.getElementById('levelUpBanner');
+      document.getElementById('levelUpText').textContent = `NÍVEL ${newLevel} ALCANÇADO`;
+      banner.classList.add('show');
+      clearTimeout(levelUpTimer);
+      levelUpTimer = setTimeout(() => banner.classList.remove('show'), 3200);
+    }
+
+    function openClassAscension(oldCls, newCls) {
+      playClassAscensionSound();
+      const ov = document.getElementById('classAscensionOverlay');
+      const card = document.getElementById('ascensionCard');
+      card.style.setProperty('--asc-accent', newCls.color);
+      document.getElementById('ascEmblem').textContent = newCls.icon;
+      document.getElementById('ascOldClass').textContent = oldCls.name;
+      document.getElementById('ascNewClass').textContent = newCls.name;
+      document.getElementById('ascFlavor').textContent = newCls.flavor;
+      ov.classList.add('open');
+    }
+
+    function closeClassAscension() {
+      document.getElementById('classAscensionOverlay').classList.remove('open');
+      renderAll();
+    }
 
     /* HELPERS DE DATA (VIRADA AUTOMÁTICA ÀS 01h00) */
     function getGameDate(dateObj = new Date()) {
@@ -1447,23 +1882,28 @@
       return dateStr < OFFICIAL_START;
     }
 
+    function isMorningAuraWindowOpen() {
+      return new Date().getHours() < 10;
+    }
+
     function round1(n) { return Math.round(n * 10) / 10; }
     function addAttr(st, key, delta) {
       if (st.attributes[key] === undefined) return;
       st.attributes[key] = round1(Math.min(100, Math.max(0, st.attributes[key] + delta)));
     }
 
-    /* DEFAULT STATE COM MARCO ZERO REAL DA PADOCK.ON E FÍSICO */
+    /* DEFAULT STATE v3.2 */
     function createDefaultState() {
       const today = getGameDate();
       return {
-        version: '3.1',
+        version: '3.2',
         xp: 0,
         streak: 0,
         muted: false,
         lastWeekReset: getWeekStart(today),
         tacticalRestLeft: 2,
         rerollRemaining: 1,
+        redeemedCodes: [],
         padock: {
           stage: 1,
           summary: 'Navegação por abas no menu lateral do painel front-end concluída (Main Slug JetEngine). Arquitetura de rastreamento definida (Opção 1: mini-snippet REST + PixelYourSite prontos para subir em produção).',
@@ -1519,6 +1959,7 @@
         today: {
           date: today,
           levels: { padock: 0, treino: 0, ingles: 0, conselho: 0 },
+          morningAuras: { corrida: false, padock: false, piano: false, caminhada: false },
           alvorada: false,
           tacticalRestUsedToday: false,
           hybridComboDone: false,
@@ -1530,11 +1971,8 @@
           lastLightningId: '',
           lightningDone: false
         },
-        chat: [
-          { role: 'ai', text: 'Bem-vindo à v3.1, matheus.bac. Arquitetura de 5 faixas ativa, Marco Zero da Padock.on (Estágio 1 — Garagem & Protótipo) e sua database física (72 kg, 10 km e cargas base) já gravados. Hoje (24/11) é Dia 0 de Calibração — a largada oficial vira automaticamente às 01h00 de amanhã.' }
-        ],
         logs: [
-          { date: today, type: 'system', text: 'Projeto Brava v3.1 inicializado. Marco Zero Padock.on sincronizado (Estágio 1) e Físico calibrado em 24.0.' }
+          { date: today, type: 'system', text: 'Projeto Brava v3.2 ativo: Portal Offline do Tecnomago, Auras Matinais, Cards Limpos e Árvore Real de Classes.' }
         ]
       };
     }
@@ -1545,13 +1983,11 @@
       if (typeof raw.xp === 'number') base.xp = raw.xp;
       if (typeof raw.streak === 'number') base.streak = raw.streak;
       if (typeof raw.muted === 'boolean') base.muted = raw.muted;
+      if (Array.isArray(raw.redeemedCodes)) base.redeemedCodes = raw.redeemedCodes;
       if (raw.attributes) {
         Object.keys(base.attributes).forEach(k => {
           if (typeof raw.attributes[k] === 'number') base.attributes[k] = raw.attributes[k];
         });
-        if (raw.version && raw.version.startsWith('2.') && base.attributes.fisico < 24) {
-          base.attributes.fisico = 24.0;
-        }
       }
       if (raw.elo) {
         base.elo = { ...base.elo, ...raw.elo };
@@ -1573,17 +2009,20 @@
       }
       if (Array.isArray(raw.scheduledMissions) && raw.scheduledMissions.length) base.scheduledMissions = raw.scheduledMissions;
       if (raw.fitnessDB) base.fitnessDB = { ...base.fitnessDB, ...raw.fitnessDB };
-      if (Array.isArray(raw.chat) && raw.chat.length) base.chat = raw.chat;
       if (Array.isArray(raw.logs) && raw.logs.length) base.logs = raw.logs;
-      if (raw.version === '3.1' && raw.today) {
-        base.today = { ...base.today, ...raw.today };
+      if (raw.today) {
+        base.today = {
+          ...base.today,
+          ...raw.today,
+          morningAuras: { ...base.today.morningAuras, ...(raw.today.morningAuras || {}) }
+        };
         if (raw.lastWeekReset) base.lastWeekReset = raw.lastWeekReset;
         if (typeof raw.tacticalRestLeft === 'number') base.tacticalRestLeft = raw.tacticalRestLeft;
         if (typeof raw.rerollRemaining === 'number') base.rerollRemaining = raw.rerollRemaining;
         if (raw.weeklyChallenge) base.weeklyChallenge = { ...base.weeklyChallenge, ...raw.weeklyChallenge };
         if (raw.mentorMicroLast) base.mentorMicroLast = { ...base.mentorMicroLast, ...raw.mentorMicroLast };
       }
-      base.version = '3.1';
+      base.version = '3.2';
       return base;
     }
 
@@ -1605,7 +2044,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
 
-    /* ÁUDIO ROCK + FALLBACK SYNTH */
+    /* ÁUDIO ROCK + FALLBACK SYNTH (SKINS) */
     function playRandomRockRiff() {
       const track = ROCK_TRACKS[Math.floor(Math.random() * ROCK_TRACKS.length)];
       if (state.muted) return track.name;
@@ -1641,7 +2080,174 @@
       toast('🎸 Tocando: ' + playRandomRockRiff());
     }
 
-    /* ROLLOVER AUTOMÁTICO (01h00), DIAS PULADOS E RESET SEMANAL BLINDADO */
+    /* ============================================================
+     * PORTAL ÚNICO DO TECNOMAGO — DECODIFICADOR UNIVERSAL (v3.2)
+     * Aceita:
+     * 1) TMG-PDK::<ID>|<XP>|<ENG>.<COM>.<INT>.<DIS>.<FIS>|P<ESTAGIO>|<RESUMO>|<GARGALO>
+     * 2) TMG-BRV::<ID>|<XP>|<ENG>.<COM>.<INT>.<DIS>.<FIS>|<ELO_RES>|<RUN_KM>|<FLAGS>|<LOG>
+     * ============================================================ */
+    function decodeSecretTelemetry() {
+      const inp = document.getElementById('secretCodeInput');
+      const revealBox = document.getElementById('syncRevealBox');
+      const raw = (inp.value || '').trim();
+      if (!raw) return toast('Cole um código secreto (TMG-BRV:: ou TMG-PDK::) primeiro.');
+
+      const line = raw.split('\n').map(s => s.trim()).find(s => s.startsWith('TMG-PDK::') || s.startsWith('TMG-BRV::'));
+      if (!line) {
+        revealBox.className = 'sync-reveal-box';
+        revealBox.innerHTML = '❌ Formato não reconhecido. Use um código começando com <strong>TMG-PDK::</strong> ou <strong>TMG-BRV::</strong>.';
+        return;
+      }
+
+      const isPdk = line.startsWith('TMG-PDK::');
+      const payload = line.slice(9);
+      const parts = payload.split('|');
+
+      if (parts.length < 3) {
+        revealBox.className = 'sync-reveal-box';
+        revealBox.innerHTML = '❌ Código incompleto. Verifique se copiou a linha inteira.';
+        return;
+      }
+
+      const codeId = (parts[0] || '').trim().toUpperCase();
+      const fullId = (isPdk ? 'PDK-' : 'BRV-') + codeId;
+
+      if (!codeId) return toast('Código sem ID válido.');
+      if (state.redeemedCodes.includes(fullId)) {
+        revealBox.className = 'sync-reveal-box';
+        revealBox.innerHTML = `⚠️ Código <strong>${escapeHtml(fullId)}</strong> já foi resgatado anteriormente (trava anti-duplicata).`;
+        return toast('Código já resgatado!');
+      }
+
+      const xpGain = Math.min(60, Math.max(0, Math.round(Number(parts[1]) || 0)));
+      const attrNums = (parts[2] || '0.0.0.0.0').split('.').map(v => Math.min(3, Math.max(0, round1(Number(v) || 0))));
+      const attrKeys = ['engenharia', 'comercial', 'intelecto', 'disciplina', 'fisico'];
+
+      const revealedPills = [];
+      const originLabel = isPdk ? '🏎️ Padock.on' : '🧙 Mestre Brava';
+
+      if (!isCalibrationDay()) {
+        if (xpGain > 0) {
+          applyXpWithProgression(xpGain);
+          revealedPills.push(`<span class="badge gold">+${xpGain} XP</span>`);
+        }
+
+        attrKeys.forEach((k, idx) => {
+          const val = attrNums[idx] || 0;
+          if (val > 0) {
+            addAttr(state, k, val);
+            revealedPills.push(`<span class="badge cyan">+${val} ${attrLabel(k)}</span>`);
+          }
+        });
+      }
+
+      let logDetail = '';
+
+      if (isPdk) {
+        // TMG-PDK::<ID>|<XP>|<ATTRS>|P<ESTAGIO>|<RESUMO>|<GARGALO>
+        const stageRaw = (parts[3] || 'P0').trim().toUpperCase();
+        const stageNum = Number(stageRaw.replace('P', '')) || 0;
+        const summaryTxt = (parts[4] || '-').trim();
+        const bottleneckTxt = (parts[5] || '-').trim();
+
+        if (stageNum >= 1 && stageNum <= 5 && stageNum !== state.padock.stage) {
+          state.padock.stage = stageNum;
+          revealedPills.push(`<span class="badge emerald">Padock → Estágio ${stageNum}</span>`);
+          addLog('evolution', `🏎️ Padock.on avançou para o Estágio ${stageNum}!`);
+        }
+        if (summaryTxt && summaryTxt !== '-') {
+          state.padock.summary = summaryTxt;
+          revealedPills.push('<span class="badge">Overview Atualizado</span>');
+        }
+        if (bottleneckTxt && bottleneckTxt !== '-') {
+          state.padock.bottleneck = bottleneckTxt;
+        }
+        logDetail = summaryTxt !== '-' ? summaryTxt : 'Telemetria técnica/comercial aplicada.';
+      } else {
+        // TMG-BRV::<ID>|<XP>|<ATTRS>|<ELO_RES>|<RUN_KM>|<FLAGS>|<LOG>
+        const eloRes = Math.min(30, Math.max(0, Math.round(Number(parts[3]) || 0)));
+        const runKm = Math.min(42, Math.max(0, round1(Number(parts[4]) || 0)));
+        const flags = (parts[5] || '-').trim().split(',').map(f => f.trim()).filter(Boolean);
+        const logTxt = (parts[6] || '-').trim();
+
+        if (!isCalibrationDay() && eloRes > 0) {
+          state.elo.reservoir += eloRes;
+          checkBreakthrough(true);
+          revealedPills.push(`<span class="badge purple">+${eloRes} Elo Res.</span>`);
+        }
+
+        if (runKm > 0) {
+          state.fitnessDB.weeklyKm = round1(state.fitnessDB.weeklyKm + runKm);
+          if (runKm > state.fitnessDB.maxRunKm) state.fitnessDB.maxRunKm = runKm;
+          revealedPills.push(`<span class="badge emerald">+${runKm} km</span>`);
+        }
+
+        flags.forEach(f => {
+          if (f === 'H1' && !state.today.hybridComboDone && !isCalibrationDay()) {
+            state.today.hybridComboDone = true;
+            applyXpWithProgression(25);
+            addAttr(state, 'fisico', 0.25);
+            addAttr(state, 'disciplina', 0.15);
+            revealedPills.push('<span class="badge gold">Combo Híbrido ✓</span>');
+          } else if (f === 'L1' && !state.today.lightningDone) {
+            state.today.lightningDone = true;
+            revealedPills.push('<span class="badge purple">Relâmpago ✓</span>');
+          } else if (f === 'C1' && state.weeklyChallenge.status === 'active') {
+            grantMentorVictory();
+            revealedPills.push('<span class="badge gold">Conselho 🏆</span>');
+          } else if (f.startsWith('M:')) {
+            const [, mId, hrs] = f.split(':');
+            const h = Math.min(2, Math.max(0, round1(Number(hrs) || 0)));
+            if (state.mentors[mId] !== undefined && h > 0) {
+              state.mentors[mId] = Math.min(100, round1(state.mentors[mId] + h));
+              revealedPills.push(`<span class="badge purple">+${h}h ${getMentor(mId).name}</span>`);
+            }
+          }
+        });
+        logDetail = logTxt !== '-' ? logTxt : 'Evolução diária sincronizada.';
+      }
+
+      state.redeemedCodes.push(fullId);
+      if (state.redeemedCodes.length > 200) state.redeemedCodes = state.redeemedCodes.slice(-200);
+
+      addLog('system', `[${originLabel} • ${codeId}] ${logDetail} (+${xpGain} XP)`);
+      inp.value = '';
+      saveState();
+      renderAll();
+
+      revealBox.className = 'sync-reveal-box revealed';
+      revealBox.innerHTML = `
+        <div><strong>✨ Telemetria Decodificada (${originLabel} • ${escapeHtml(codeId)})</strong></div>
+        <div class="sync-reveal-pills">${revealedPills.length ? revealedPills.join('') : '<span class="badge">Registro salvo (Dia 0)</span>'}</div>
+      `;
+      toast(`⚡ Código ${codeId} decodificado e aplicado!`);
+    }
+
+    function copyStateForMaster() {
+      const lvlInfo = getLevelInfo(state.xp);
+      const cls = getClassForLevel(lvlInfo.level);
+      const activeAuras = MORNING_AURAS.filter(a => state.today.morningAuras[a.id]).map(a => a.id);
+      const snapshot = {
+        data: state.today.date,
+        nivel: lvlInfo.level,
+        classe: cls.name,
+        xpTotal: state.xp,
+        streakPadock: state.streak,
+        atributos: state.attributes,
+        eloGlobal: `${state.elo.percent.toFixed(1)}%`,
+        padock: { estagio: state.padock.stage, gargalo: state.padock.bottleneck },
+        aurasAtivasHoje: activeAuras,
+        kmSemana: state.fitnessDB.weeklyKm
+      };
+      navigator.clipboard.writeText(JSON.stringify(snapshot, null, 2)).then(() => {
+        const box = document.getElementById('syncRevealBox');
+        box.className = 'sync-reveal-box revealed';
+        box.innerHTML = '📋 <strong>Status copiado!</strong> Cole no chat com o Mestre para gerar a próxima telemetria.';
+        toast('📋 Status atual copiado!');
+      });
+    }
+
+    /* ROLLOVER AUTOMÁTICO (01h00), DIAS PULADOS E RESET SEMANAL */
     function checkAutoRollover() {
       const gameToday = getGameDate();
       const diff = daysBetween(state.today.date, gameToday);
@@ -1650,6 +2256,7 @@
         processDayEnd(true, gameToday, diff);
       } else {
         ensureDayInitialized();
+        renderMorningAuras();
       }
 
       if (state.skins.pendingUnlocks.length > 0 && !currentOverlayStage) {
@@ -1661,6 +2268,9 @@
 
     function ensureDayInitialized() {
       const d = state.today.date;
+      if (!state.today.morningAuras) {
+        state.today.morningAuras = { corrida: false, padock: false, piano: false, caminhada: false };
+      }
       if (!state.today.modifierId) {
         state.today.modifierId = DAY_MODIFIERS[Math.floor(Math.random() * DAY_MODIFIERS.length)].id;
         const keys = ['padock', 'treino', 'ingles', 'conselho'];
@@ -1702,12 +2312,16 @@
       if (!cal) {
         const multMap = { 0: 0, 40: 0.55, 70: 1.0, 100: 1.25 };
         const lv = state.today.levels;
+        const auras = state.today.morningAuras || {};
         let xpGain = 0;
 
-        xpGain += Math.round(65 * multMap[lv.padock]);
-        xpGain += Math.round(45 * multMap[lv.treino]);
-        xpGain += Math.round(35 * multMap[lv.ingles]);
-        xpGain += Math.round(35 * multMap[lv.conselho]);
+        // XP das 4 missões fixas com +20% de Aura Matinal se ativa
+        const baseXpMap = { padock: 65, treino: 45, ingles: 35, conselho: 35 };
+        Object.keys(baseXpMap).forEach(k => {
+          const auraForMission = MORNING_AURAS.find(a => a.missionKey === k && auras[a.id]);
+          const auraMult = auraForMission ? 1.20 : 1.0;
+          xpGain += Math.round(baseXpMap[k] * multMap[lv[k]] * auraMult);
+        });
 
         // Atributos base
         addAttr(state, 'engenharia', 0.45 * multMap[lv.padock]);
@@ -1715,7 +2329,16 @@
         addAttr(state, 'fisico', 0.35 * multMap[lv.treino]);
         addAttr(state, 'intelecto', 0.25 * multMap[lv.ingles] + 0.2 * multMap[lv.conselho]);
 
-        // Elo Global (Input do dia)
+        // Bônus de +0.5 atributo das Auras Matinais ao fechar 100% da missão ligada
+        let auraBonusList = [];
+        MORNING_AURAS.forEach(a => {
+          if (auras[a.id] && lv[a.missionKey] === 100) {
+            addAttr(state, a.attr, 0.5);
+            auraBonusList.push(`+0.5 ${a.attrShort}`);
+          }
+        });
+
+        // Elo Global
         if (lv.ingles >= 40) {
           state.elo.reservoir += Math.round(14 * multMap[lv.ingles]);
           state.elo.skills.listening = Math.min(100, round1(state.elo.skills.listening + 0.15 * multMap[lv.ingles]));
@@ -1723,7 +2346,7 @@
           if (lv.ingles === 100) state.elo.skills.writing = Math.min(100, round1(state.elo.skills.writing + 0.2));
         }
 
-        // Bloco do Conselho -> afinidade do mentor do dia
+        // Bloco do Conselho
         const mToday = MENTORS[state.today.councilMentorIdx % MENTORS.length];
         const affMap = { 0: 0, 40: 0.25, 70: 0.5, 100: 1.0 };
         if (affMap[lv.conselho] > 0) {
@@ -1731,13 +2354,11 @@
           state.elo.reservoir += affMap[lv.conselho] * 6;
         }
 
-        // Descanso Tático
         if (state.today.tacticalRestUsedToday) {
           xpGain += 10;
           addAttr(state, 'fisico', 0.05);
         }
 
-        // Relâmpago
         if (state.today.lightningDone) {
           const lm = LIGHTNING_POOL.find(x => x.id === state.today.lightningId);
           if (lm) {
@@ -1750,57 +2371,50 @@
           }
         }
 
-        // Agendadas concluídas hoje
         state.scheduledMissions.filter(m => m.date === closingDate && m.done).forEach(m => {
           xpGain += Number(m.xp) || 40;
           addAttr(state, m.attr || 'comercial', 0.45);
         });
 
-        // Buff da Alvorada
         if (state.today.alvorada) {
           xpGain = Math.round(xpGain * 1.10);
           addAttr(state, 'disciplina', 0.15);
         }
 
-        state.xp += xpGain;
-
         // Modificador Automático do Dia
         const mod = DAY_MODIFIERS.find(m => m.id === state.today.modifierId);
         let modNote = '';
+        let beforeModXp = state.xp;
         if (mod && mod.check(state)) {
           mod.apply(state);
           modNote = ` • Modificador [${mod.name}]!`;
         }
+        const modXpAdded = state.xp - beforeModXp;
+        state.xp = beforeModXp; // reaplica tudo junto com detecção de Level Up / Ascensão
+        applyXpWithProgression(xpGain + modXpAdded);
 
-        // Streak (corte >= 70% em Execução Inegociável)
-        if (lv.padock >= 70) {
-          state.streak += 1;
-        } else {
-          state.streak = 0;
-        }
+        if (lv.padock >= 70) state.streak += 1;
+        else state.streak = 0;
 
         const bt = checkBreakthrough(false);
-        addLog('day', `Dia ${formatDateBR(closingDate)} encerrado (${isAuto ? 'auto 01h' : 'manual'}): +${xpGain} XP • Streak: ${state.streak}d${modNote}${bt ? ' • ⚡ BREAKTHROUGH!' : ''}`);
+        const auraNote = auraBonusList.length ? ` • Aura(${auraBonusList.join(', ')})` : '';
+        addLog('day', `Dia ${formatDateBR(closingDate)} encerrado (${isAuto ? 'auto 01h' : 'manual'}): +${xpGain + modXpAdded} XP • Streak: ${state.streak}d${auraNote}${modNote}${bt ? ' • ⚡ BREAKTHROUGH!' : ''}`);
 
-        // Evoluções Secretas
         newlyUnlocked = evaluateSecretSkinUnlocks(isAuto);
       } else {
         addLog('system', `Dia 0 (${formatDateBR(closingDate)}) encerrado sem alteração de pontos. Largada oficial armada!`);
       }
 
-      // Dias pulados (2+ dias sem abrir após início oficial)
       if (daysElapsed >= 2 && newDate > OFFICIAL_START) {
         state.streak = 0;
         addLog('system', `⚠️ ${daysElapsed - 1} dia(s) sem registro — Streak resetado para 0.`);
       }
 
-      // Expira chamada semanal ativa se não foi concluída
       if (state.weeklyChallenge.status === 'active') {
         state.weeklyChallenge.status = 'expired';
         addLog('mentor', `Chamada de ${getMentor(state.weeklyChallenge.mentorId).name} encerrada no fechamento do dia (sem punição).`);
       }
 
-      // Reset semanal à prova de falhas (por semana calendário)
       const newWeek = getWeekStart(newDate);
       if (newWeek !== state.lastWeekReset) {
         state.lastWeekReset = newWeek;
@@ -1810,15 +2424,15 @@
         addLog('system', '🔄 Nova semana: Descanso Tático (2/2), Reroll (1/1) e km semanais renovados.');
       }
 
-      // Rotaciona mentor do dia + sorteia micro-missão sem repetir a última
       const nextMentorIdx = (state.today.councilMentorIdx + 1) % MENTORS.length;
       const nextMentorId = MENTORS[nextMentorIdx].id;
       const nextMicroIdx = drawMicroMissionIdx(nextMentorId);
-
       const prevLightning = state.today.lightningId;
+
       state.today = {
         date: newDate,
         levels: { padock: 0, treino: 0, ingles: 0, conselho: 0 },
+        morningAuras: { corrida: false, padock: false, piano: false, caminhada: false },
         alvorada: false,
         tacticalRestUsedToday: false,
         hybridComboDone: false,
@@ -1895,7 +2509,7 @@
       return unseen[Math.floor(Math.random() * unseen.length)] || all[0];
     }
 
-    /* EVOLUÇÕES SECRETAS (6 ESTÁGIOS) */
+    /* EVOLUÇÕES SECRETAS DE SKIN */
     function evaluateSecretSkinUnlocks(queueForNextOpen) {
       const m = state.metrics;
       const elo = state.elo.percent;
@@ -1958,7 +2572,15 @@
       }
     }
 
-    /* INTERAÇÕES DA OPERAÇÃO DIÁRIA */
+    /* INTERAÇÕES DA OPERAÇÃO DIÁRIA E AURAS MATINAIS */
+    function toggleMorningAura(auraId) {
+      if (state.today.date > getGameDate()) return toast('Dia já encerrado.');
+      if (!isMorningAuraWindowOpen()) return toast('Janela de Aura Matinal encerrada às 10h00.');
+      state.today.morningAuras[auraId] = !state.today.morningAuras[auraId];
+      saveState();
+      renderFaixa3();
+    }
+
     function setTaskLevel(key, val) {
       if (state.today.date > getGameDate()) return toast('Dia já encerrado. Aguarde as 01h00.');
       state.today.levels[key] = val;
@@ -2005,9 +2627,10 @@
       toast('🎲 Nova Missão Relâmpago sorteada!');
     }
 
-    function validateLightningWithMage() {
+    function copyLightningForValidation() {
       const lm = LIGHTNING_POOL.find(x => x.id === state.today.lightningId) || LIGHTNING_POOL[0];
-      prefillChat(`Validar Missão Relâmpago ("${lm.title}"): `);
+      navigator.clipboard.writeText(`Mestre, concluí a Missão Relâmpago de hoje ("${lm.title}"). Pode validar e gerar o código TMG-BRV?`)
+        .then(() => toast('📋 Mensagem de validação copiada para colar no chat!'));
     }
 
     function toggleScheduledMission(id) {
@@ -2037,27 +2660,16 @@
       renderAll();
     }
 
-    function sendWeeklyChallengeToMage() {
-      const mc = state.weeklyChallenge;
-      const ans = document.getElementById('mcAnswerInput').value.trim();
-      if (!ans) return toast('Escreva sua resposta em inglês antes de enviar.');
-      mc.draftAnswer = ans;
-      const mentor = getMentor(mc.mentorId);
-      const q = getAllQuestionsForMentor(mc.mentorId).find(x => x.id === mc.questionId);
-      switchTowerTab('mage');
-      scrollToEl('faixa4Tower');
-      document.getElementById('chatInput').value = `[CHAMADA SEMANAL DO CONSELHO — ${mentor.name}]\nQuestion: "${q ? q.text : ''}"\nMy Answer (English): ${ans}`;
-      sendChat();
-    }
-
     function copyChallengeForEval() {
       const mc = state.weeklyChallenge;
       const mentor = getMentor(mc.mentorId);
       const q = getAllQuestionsForMentor(mc.mentorId).find(x => x.id === mc.questionId);
       const ans = document.getElementById('mcAnswerInput').value.trim();
       if (!ans) return toast('Escreva sua resposta em inglês primeiro.');
-      const payload = `[PROJETO BRAVA — CHAMADA SEMANAL]\nMentor: ${mentor.name}\nQuestion: "${q ? q.text : ''}"\nMy Answer: ${ans}`;
-      navigator.clipboard.writeText(payload).then(() => toast('📋 Copiado para a área de transferência!'));
+      mc.draftAnswer = ans;
+      saveState();
+      const payload = `[PROJETO BRAVA — CHAMADA SEMANAL]\nMentor: ${mentor.name}\nQuestion: "${q ? q.text : ''}"\nMy Answer: ${ans}\n\n(Avalie meu inglês e estratégia e gere o código TMG-BRV com flag C1 se eu merecer aprovação)`;
+      navigator.clipboard.writeText(payload).then(() => toast('📋 Copiado! Cole no chat com o Mestre.'));
     }
 
     function resolveBinaryChallenge(won) {
@@ -2087,7 +2699,7 @@
         state.elo.reservoir += 36;
         state.elo.skills.writing = Math.min(100, round1(state.elo.skills.writing + 0.5));
         addAttr(state, 'intelecto', 1.0);
-        state.xp += 120;
+        applyXpWithProgression(120);
         state.mentors[mentor.id] = Math.min(100, round1((state.mentors[mentor.id] || 10) + 2));
         checkBreakthrough(true);
       }
@@ -2111,244 +2723,20 @@
       return jumped;
     }
 
-    /* PADOCK.ON TELEMETRY PROMPT */
+    /* PROTOCOLO TMG-PDK PARA O CHAT DA PADOCK.ON */
     function copyPadockPrompt() {
-      const prompt = `Mestre Padock, gere um Relatório de Telemetria da Padock.on para eu sincronizar com o Tecnomago no meu RPG (Projeto Brava v3.1).\n\nRegras: seja 100% objetivo e rigoroso. Só conte execução real (código, estrutura pronta, oferta, prospecção, reuniões ou vendas). Não infle ideias ou planos ainda não executados.\n\nUse esta escala oficial de 5 estágios da Padock.on:\n- Estágio 1 (Garagem & Protótipo): construção do motor de estoque, vitrine e dashboard de leads.\n- Estágio 2 (Caça na Pista): produto demonstrável pronto; foco em prospecção ativa nas lojas, demos e primeiros contratos.\n- Estágio 3 (Ignição Comercial): primeiros clientes pagantes ativos, onboarding rodando e MRR inicial.\n- Estágio 4 (Grid de Elite): carteira recorrente sólida, processos replicáveis e tração constante.\n- Estágio 5 (Soberania Padock.on): operação madura, previsibilidade alta e liberdade de escala.\n\nResponda EXATAMENTE neste formato:\n[TELEMETRIA PADOCK.ON]\n- Estágio Atual: [1 a 5 — Nome] (Mudou de estágio? Sim/Não)\n- Entregas Técnicas (Engenharia): [lista curta do que foi realmente construído/corrigido]\n- Avanço Comercial (Vendas/Funil): [prospecções, demos, propostas, clientes ativos ou MRR]\n- Impacto Real do Ciclo: [Leve / Sólido / Alto / Marco de Fase]\n- Próximo Gargalo Crítico: [1 frase direta sobre a próxima trava a destruir]`;
+      const prompt = `[PROTOCOLO DE INTEGRAÇÃO — PROJETO BRAVA / TECNOMAGO v3.2]\n\nA partir de agora, você também atua como emissor de telemetria para o meu sistema pessoal de gamificação (Projeto Brava).\n\nREGRAS DE ATIVAÇÃO:\n1. NÃO gere o código em toda mensagem. Gere APENAS quando eu pedir explicitamente (ex: "gera a telemetria", "fecha a sessão", "manda o código pro Tecnomago").\n2. REGRA ANTI-SPOILER: Quando gerar o código, NÃO explique, NÃO comente e NÃO revele quantos pontos de XP ou atributos eu ganhei no texto da resposta. Entregue apenas o código dentro de um bloco de texto simples.\n3. REGRA ANTI-FARM (RIGOROSA): Avalie o impacto real do que foi executado na sessão. Tarefas triviais ou só planejamento sem execução = 0 a 15 XP. Avanço técnico sólido (WordPress/Elementor/Crocoblock/JetEngine) ou prospecção ativa = 20 a 45 XP. Entregas críticas, fechamento de cliente ou marco importante = 45 a 60 XP.\n   - Teto máximo por sessão: 60 XP.\n   - Atributos (0 a 3 pontos cada por sessão): foque principalmente em Engenharia, Comercial e Disciplina.\n\nFORMATO OBRIGATÓRIO DA SAÍDA (1 única linha, sem quebras):\nTMG-PDK::<ID>|<XP>|<ENG>.<COM>.<INT>.<DIS>.<FIS>|P<ESTAGIO>|<RESUMO>|<GARGALO>\n\nEXEMPLO:\nTMG-PDK::2511A|35|2.1.0.1.0|P0|Filtros JetSmartFilters configurados no catalogo|Validar velocidade mobile\n\nConfirme apenas com "Protocolo TMG-PDK ativo." e aguarde meu próximo comando.`;
       navigator.clipboard.writeText(prompt);
-      toast('📋 Prompt da Padock.on copiado!');
+      toast('📋 Protocolo TMG-PDK copiado!');
     }
 
     function prepPadockSync() {
       switchTowerTab('mage');
       scrollToEl('faixa4Tower');
-      const inp = document.getElementById('chatInput');
-      inp.value = 'Sincronizar Padock.on:\n';
-      inp.focus();
+      document.getElementById('secretCodeInput').focus();
     }
 
-    function prefillChat(txt) {
-      switchTowerTab('mage');
-      scrollToEl('faixa4Tower');
-      const inp = document.getElementById('chatInput');
-      inp.value = txt;
-      inp.focus();
-    }
-
-    /* PORTAL DO TECNOMAGO (GEMINI 2.5 PRO + FALLBACK FLASH + SANITIZED HISTORY) */
-    function buildSanitizedHistory() {
-      const raw = state.chat.filter(m => m.role === 'user' || m.role === 'ai').slice(-12);
-      const contents = [];
-      for (const m of raw) {
-        const role = m.role === 'user' ? 'user' : 'model';
-        if (contents.length === 0 && role !== 'user') continue;
-        if (contents.length > 0 && contents[contents.length - 1].role === role) {
-          contents[contents.length - 1].parts[0].text += '\n' + m.text;
-        } else {
-          contents.push({ role, parts: [{ text: m.text }] });
-        }
-      }
-      return contents;
-    }
-
-    async function sendChat() {
-      if (isSendingChat) return;
-      const inp = document.getElementById('chatInput');
-      const btn = document.getElementById('sendChatBtn');
-      const text = inp.value.trim();
-      if (!text) return;
-
-      const apiKey = localStorage.getItem('brava_gemini_key');
-      state.chat.push({ role: 'user', text });
-      inp.value = '';
-      renderChat();
-
-      if (!apiKey) {
-        state.chat.push({ role: 'ai', text: 'Configure sua chave gratuita da API do Gemini em ⚙ Config / API & Simulação.' });
-        saveState();
-        renderChat();
-        return;
-      }
-
-      isSendingChat = true;
-      btn.disabled = true;
-      btn.textContent = '...';
-
-      const lm = LIGHTNING_POOL.find(x => x.id === state.today.lightningId) || LIGHTNING_POOL[0];
-      const systemPrompt = `Você é o Tecnomago do Projeto Brava v3.1, mentor estratégico, direto, rigoroso e anti-farm de Matheus (matheus.bac, 23 anos, 72 kg, atualmente CLT na Petrobras em Macaé/RJ).
-
-LORE & VISÃO DE LONGO PRAZO:
-- Objetivo Final (Endgame): Projeto Brava — construir liberdade financeira, geográfica e física para sair da CLT e viver na Praia Brava (SC).
-- Veículo Principal (Arco 1): Padock.on — negócio WaaS/SaaS para revendas automotivas (vitrine de estoque + dashboard de leads em WordPress/Elementor/Crocoblock/JetEngine). Meta inicial: 5 clientes pagantes → 12+ com playbooks e 1ª delegação → expansão internacional em moeda forte.
-- Temporada 2 (Viagem à Terra Natal): Férias da Petrobras divididas entre Dez/2026 e Jan/2027. Escalada de prospecção presencial agendada de 05/12 a 11/12/2026 (2 → 4 → 6 → 8 → 10 → 12 revendas, pulando domingo).
-- Conselho Interno (10h → 100h): Dan Koe (Foco/Mentalidade), Michia Rohrssen (Execução Brutal/Outbound), Naval Ravikant (Alavancagem de Código/Mídia) e Dan Martell (SaaS/WaaS/Escala B2B).
-- Leitura: ${state.books.artOfFocusDone ? `Já concluiu The Art of Focus; livro atual: ${state.books.currentBook}` : 'Lendo The Art of Focus (Dan Koe)'}.
-- Inglês (Elo Global): Meta é atravessar 73% (B2+), 79% (C1 Inicial), 85% (C1 Sólido) até C2. Fique sempre atento aos 5 erros fósseis dele: preposições (in/on/at), passado simples vs. present perfect, make vs. do, falsos cognatos e for+-ing vs. to+infinitivo.
-
-ESTADO ATUAL EM TEMPO REAL:
-- Data ativa: ${state.today.date} (${isCalibrationDay() ? 'DIA 0 CALIBRAÇÃO - não dê XP nem atributos' : 'OFICIAL'})
-- Progresso: ${state.xp} XP | Streak Padock: ${state.streak} dias | Estágio Protagonista: ${state.skins.activeStage}/6
-- Atributos: ${JSON.stringify(state.attributes)}
-- Elo Global: ${state.elo.percent}% | Skills: ${JSON.stringify(state.elo.skills)} | Chunks: ${state.elo.chunks.length}/50
-- Métricas Arco 1: ${JSON.stringify(state.metrics)}
-- Afinidade Conselho (horas): ${JSON.stringify(state.mentors)}
-- Padock.on: Estágio ${state.padock.stage}/5 | Resumo: ${state.padock.summary} | Gargalo: ${state.padock.bottleneck}
-- Missão Relâmpago hoje: "${lm.title}" (Concluída: ${state.today.lightningDone})
-- Chamada Semanal ativa hoje: ${state.weeklyChallenge.status === 'active' ? getMentor(state.weeklyChallenge.mentorId).name : 'Nenhuma'}
-- Combo Híbrido já aplicado hoje: ${state.today.hybridComboDone}
-- Database Física (Marco Zero): ${JSON.stringify(state.fitnessDB)}
-
-REGRAS OBRIGATÓRIAS:
-1. TREINO FÍSICO: Sempre que matheus.bac relatar grupos musculares treinados hoje (ex: peito e tríceps), PERGUNTE a carga de 1 exercício específico de cada grupo usando a database dele. Se ele não fez aquele exercício, troque por outro do mesmo grupo. Só dê bônus de PR (20-35 XP) se superar o Marco Zero.
-2. COMBO HÍBRIDO: Musculação + 6 km logo após (máx 1x/dia, só se hybridComboDone=false): marque "hybridCombo": true.
-3. CHAMADA SEMANAL DO CONSELHO: Se receber [CHAMADA SEMANAL DO CONSELHO], corrija o inglês focando nos 5 erros fósseis + naturalidade C1 e avalie a estratégia B2B. Se merecer aprovação, marque "councilVictory": true.
-4. TELEMETRIA PADOCK.ON: Ao receber [TELEMETRIA PADOCK.ON], atualize "padockSummary" e "padockBottleneck" com texto curto/objetivo, atualize "padockStage" (1 a 5) apenas se mudou de estágio de verdade, e dê XP/Engenharia/Comercial proporcionais ao impacto real.
-5. HARD CAPS: Nunca infle XP (máx 60 XP por interação; Evento Raro máx 60 XP). Caminhada da Sabedoria: use "mentorBoost" ({ "id": "dan-koe|michia|naval|dan-martell", "hours": 0.35 }) + "elo".
-
-Ao final da sua resposta normal em português, SE houver alguma ação para aplicar no jogo, inclua EXATAMENTE um bloco JSON:
-\`\`\`json
-{ "xp": 0, "attrs": { "engenharia": 0, "comercial": 0, "intelecto": 0, "disciplina": 0, "fisico": 0 }, "elo": { "listening": 0, "reading": 0, "speaking": 0, "writing": 0, "reservoir": 0 }, "padockStage": null, "padockSummary": "", "padockBottleneck": "", "lightningDone": false, "councilVictory": false, "addRunKm": 0, "hybridCombo": false, "mentorBoost": null, "log": "" }
-\`\`\``;
-
-      const history = buildSanitizedHistory();
-
-      const callModel = async (model) => {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 20000);
-        try {
-          const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal: controller.signal,
-            body: JSON.stringify({
-              system_instruction: { parts: [{ text: systemPrompt }] },
-              contents: history
-            })
-          });
-          if (!r.ok) {
-            const errJson = await r.json().catch(() => ({}));
-            throw new Error(`${r.status} [${model}]: ${errJson?.error?.message || r.statusText}`);
-          }
-          return await r.json();
-        } finally {
-          clearTimeout(timer);
-        }
-      };
-
-      try {
-        const models = ['gemini-3.8-flash'];
-        let data = null;
-        let lastErr = '';
-        for (const m of models) {
-          try {
-            data = await callModel(m);
-            break;
-          } catch (err) {
-            lastErr = err.message;
-          }
-        }
-        if (!data) throw new Error(lastErr);
-        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sem resposta da API.';
-        state.chat.push({ role: 'ai', text: processMageActions(reply) });
-      } catch (e) {
-        const msg = e.message.includes('503')
-          ? 'Servidor do Gemini temporariamente lotado (503). Aguarde 10 segundos e clique em Enviar novamente.'
-          : `Falha na API do Gemini → ${e.message}`;
-        state.chat.push({ role: 'ai', text: msg });
-      }finally {
-        isSendingChat = false;
-        btn.disabled = false;
-        btn.textContent = 'Enviar';
-        saveState();
-        renderAll();
-      }
-    }
-
-    function processMageActions(reply) {
-      const match = reply.match(/```json\s*([\s\S]*?)```/);
-      if (!match) return reply;
-      try {
-        const act = JSON.parse(match[1]);
-        const summary = [];
-
-        if (!isCalibrationDay()) {
-          const xp = Math.min(60, Math.max(0, Number(act.xp || 0)));
-          if (xp > 0) { state.xp += xp; summary.push(`+${xp} XP`); }
-
-          if (act.attrs) {
-            Object.keys(act.attrs).forEach(k => {
-              const v = Math.min(0.6, Math.max(0, Number(act.attrs[k] || 0)));
-              if (v > 0 && state.attributes[k] !== undefined) {
-                addAttr(state, k, v);
-                summary.push(`+${v} ${k}`);
-              }
-            });
-          }
-
-          if (act.elo) {
-            ['listening', 'reading', 'speaking', 'writing'].forEach(k => {
-              const v = Math.min(0.6, Math.max(0, Number(act.elo[k] || 0)));
-              if (v > 0) {
-                state.elo.skills[k] = Math.min(100, round1(state.elo.skills[k] + v));
-                summary.push(`+${v}% ${k}`);
-              }
-            });
-            const res = Math.min(25, Math.max(0, Number(act.elo.reservoir || 0)));
-            if (res > 0) {
-              state.elo.reservoir += res;
-              checkBreakthrough(true);
-            }
-          }
-
-          if (act.hybridCombo && !state.today.hybridComboDone) {
-            state.today.hybridComboDone = true;
-            state.xp += 25;
-            addAttr(state, 'fisico', 0.25);
-            addAttr(state, 'disciplina', 0.15);
-            summary.push('Combo Híbrido ✓');
-          }
-
-          if (act.mentorBoost && act.mentorBoost.id && state.mentors[act.mentorBoost.id] !== undefined) {
-            const h = Math.min(2, Math.max(0, Number(act.mentorBoost.hours || 0)));
-            if (h > 0) {
-              state.mentors[act.mentorBoost.id] = Math.min(100, round1(state.mentors[act.mentorBoost.id] + h));
-              summary.push(`+${h}h ${getMentor(act.mentorBoost.id).name}`);
-            }
-          }
-        }
-
-        if (act.padockStage >= 1 && act.padockStage <= 5 && act.padockStage !== state.padock.stage) {
-          state.padock.stage = act.padockStage;
-          summary.push(`Padock → Estágio ${act.padockStage}`);
-          addLog('evolution', `🏎️ Padock.on avançou para o Estágio ${act.padockStage}!`);
-        }
-        if (act.padockSummary && typeof act.padockSummary === 'string' && act.padockSummary.trim()) {
-          state.padock.summary = act.padockSummary.trim();
-          summary.push('Overview Padock ✓');
-        }
-        if (act.padockBottleneck && typeof act.padockBottleneck === 'string' && act.padockBottleneck.trim()) {
-          state.padock.bottleneck = act.padockBottleneck.trim();
-        }
-        if (act.lightningDone && !state.today.lightningDone) {
-          state.today.lightningDone = true;
-          summary.push('Relâmpago ✓');
-        }
-        if (act.councilVictory && state.weeklyChallenge.status === 'active') {
-          grantMentorVictory();
-          summary.push('Vitória no Conselho 🏆');
-        }
-        if (act.addRunKm > 0) {
-          const km = Number(act.addRunKm);
-          state.fitnessDB.weeklyKm = round1(state.fitnessDB.weeklyKm + km);
-          if (km > state.fitnessDB.maxRunKm) state.fitnessDB.maxRunKm = km;
-          summary.push(`+${km} km`);
-        }
-        if (act.log) addLog('system', act.log);
-        if (summary.length > 0) state.chat.push({ role: 'sys', text: '⚡ Aplicado: ' + summary.join(' • ') });
-      } catch (e) {}
-      return reply.replace(/```json[\s\S]*?```/, '').trim();
-    }
-
-    /* UTILITÁRIOS DE AGENDA, MÉTRICAS, LOGS E CONFIG */
+    /* AGENDA, MÉTRICAS, LOGS E CONFIG */
     function addScheduledMission() {
       const title = document.getElementById('schedTitle').value.trim();
       const date = document.getElementById('schedDate').value;
@@ -2478,7 +2866,6 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
     }
 
     function openSettingsModal() {
-      document.getElementById('apiKeyInput').value = localStorage.getItem('brava_gemini_key') || '';
       document.getElementById('muteBtn').textContent = state.muted ? '🔇 Som: OFF' : '🔊 Som: ON';
       document.getElementById('calEloPct').value = state.elo.percent.toFixed(1);
       document.getElementById('calL').value = state.elo.skills.listening;
@@ -2494,12 +2881,6 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
     }
 
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-    function saveApiKey() {
-      localStorage.setItem('brava_gemini_key', document.getElementById('apiKeyInput').value.trim());
-      renderAll();
-      toast('🔑 Chave da API salva no navegador!');
-    }
 
     function toggleMute() {
       state.muted = !state.muted;
@@ -2548,7 +2929,7 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `projeto-brava-v3.1-${state.today.date}.json`;
+      a.download = `projeto-brava-v3.2-${state.today.date}.json`;
       a.click();
       toast('⬇ Backup JSON exportado!');
     }
@@ -2563,7 +2944,7 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
           saveState();
           checkAutoRollover();
           renderAll();
-          toast('⬆ Backup restaurado na v3.1!');
+          toast('⬆ Backup restaurado na v3.2!');
         } catch { toast('Arquivo JSON inválido.'); }
       };
       reader.readAsText(file);
@@ -2571,7 +2952,7 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
     }
 
     function hardReset() {
-      if (!confirm('Zerar todo o Projeto Brava para o padrão v3.1?')) return;
+      if (!confirm('Zerar todo o Projeto Brava para o padrão v3.2?')) return;
       state = createDefaultState();
       ensureDayInitialized();
       saveState();
@@ -2580,7 +2961,7 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
       toast('Sistema resetado.');
     }
 
-    /* HELPERS DE IMAGEM E CLASSE */
+    /* HELPERS DE IMAGEM E STATUS */
     function loadImageChain(imgEl, urls, onAllFail) {
       let i = 0;
       imgEl.onerror = () => {
@@ -2594,23 +2975,6 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
     function mentorImgUrls(base) { return [`${base}.jpg`, `${base}.jpeg`, `${base}.png`]; }
     function skinImgUrls(st) { return [`matheus-${st}.gif`, `matheus-${st}.jpg`, `matheus-${st}.jpeg`, `matheus-${st}.png`]; }
     function getMentor(id) { return MENTORS.find(m => m.id === id) || MENTORS[0]; }
-
-    function getDynamicClass() {
-      const a = state.attributes;
-      const entries = [
-        { val: a.engenharia, name: 'Arquiteto Cyber', css: 'class-cyan', color: '#22d3ee' },
-        { val: a.comercial, name: 'Closer Tático', css: 'class-gold', color: '#f59e0b' },
-        { val: a.fisico, name: 'Gladiador', css: 'class-emerald', color: '#10b981' },
-        { val: a.intelecto, name: 'Estrategista', css: 'class-purple', color: '#a855f7' },
-        { val: a.disciplina, name: 'Executor Implacável', css: 'class-rose', color: '#f43f5e' }
-      ];
-      const vals = entries.map(e => e.val);
-      if (Math.max(...vals) >= 20 && Math.max(...vals) - Math.min(...vals) <= 5) {
-        return { name: 'Soberano Completo', css: 'class-prismatic', color: '#22d3ee' };
-      }
-      entries.sort((x, y) => y.val - x.val);
-      return entries[0];
-    }
 
     function getStreakEnergy() {
       const s = state.streak || 0;
@@ -2664,6 +3028,8 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
       const pill = document.getElementById('heroStatusPill');
       const mc = state.weeklyChallenge;
       const isMentorActive = mc.status === 'active' && mc.scheduledDate === state.today.date;
+      const lvlInfo = getLevelInfo(state.xp);
+      const cls = getClassForLevel(lvlInfo.level);
 
       if (isMentorActive) {
         const m = getMentor(mc.mentorId);
@@ -2671,25 +3037,26 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
         pill.classList.add('alert');
         document.getElementById('heroStatusText').textContent = `CHAMADA DO CONSELHO • ${m.name.toUpperCase()} INVADIU O HUD`;
         document.getElementById('heroTitle').textContent = `${m.name} — Desafio Semanal Ativo`;
-        document.getElementById('heroSubtitle').textContent = `${m.specialty} • Envie sua resposta ao Tecnomago para 2x Elo Global + 2h Afinidade`;
+        document.getElementById('heroSubtitle').textContent = `${m.specialty} • Copie sua resposta para o chat e conquiste 2x Elo Global + 2h Afinidade`;
         loadImageChain(img, [...mentorImgUrls(m.bannerBase), 'brava.gif', 'brava.png'], () => img.style.opacity = '0');
       } else {
         ban.classList.remove('mentor-active');
         pill.classList.remove('alert');
         document.getElementById('heroStatusText').textContent = 'PRAIA BRAVA • OPERAÇÃO PADOCK.ON';
-        document.getElementById('heroTitle').textContent = 'Matheus • Arquiteto da Soberania';
+        document.getElementById('heroTitle').textContent = `Matheus • ${cls.icon} ${cls.name}`;
         document.getElementById('heroSubtitle').textContent = 'Arco 1: Padock.on → Temporada 2: Viagem à Terra Natal • Virada automática às 01h00';
         loadImageChain(img, ['brava.gif', 'brava.png', 'brava.jpg', 'brava.jpeg'], () => img.style.opacity = '0');
       }
 
       const modePill = document.getElementById('heroModePill');
-      modePill.textContent = isCalibrationDay() ? 'DIA 0 — CALIBRAÇÃO' : 'OFICIAL • v3.1';
+      modePill.textContent = isCalibrationDay() ? 'DIA 0 — CALIBRAÇÃO' : 'OFICIAL • v3.2';
       modePill.className = isCalibrationDay() ? 'status-pill cal' : 'status-pill';
 
-      const lvl = Math.floor(state.xp / 250) + 1;
       const eloRank = getEloRank(state.elo.percent);
       document.getElementById('heroDatePill').textContent = formatDateBR(state.today.date);
-      document.getElementById('hudLevelXp').textContent = `LVL ${lvl} • ${state.xp} XP`;
+      document.getElementById('hudClassTop').textContent = `CLASSE: ${cls.name.toUpperCase()}`;
+      document.getElementById('hudLevelXp').textContent = `LVL ${lvlInfo.level} • ${lvlInfo.currentXp}/${lvlInfo.nextLevelXp} XP`;
+      document.getElementById('hudXpBarFill').style.width = `${lvlInfo.pct.toFixed(1)}%`;
       document.getElementById('hudStreak').textContent = `${state.streak} ${state.streak === 1 ? 'dia' : 'dias'}`;
       document.getElementById('hudEloTop').textContent = `${state.elo.percent.toFixed(1)}% ${eloRank.label}`;
     }
@@ -2726,7 +3093,8 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
     function renderSkinCard() {
       const st = state.skins.unlocked.includes(state.skins.activeStage) ? state.skins.activeStage : 1;
       const meta = SKIN_STAGES.find(s => s.stage === st) || SKIN_STAGES[0];
-      const cls = getDynamicClass();
+      const lvlInfo = getLevelInfo(state.xp);
+      const cls = getClassForLevel(lvlInfo.level);
       const eng = getStreakEnergy();
 
       document.getElementById('runKmWeekBadge').textContent = `🏃 ${state.fitnessDB.weeklyKm.toFixed(1)} km/sem`;
@@ -2738,7 +3106,8 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
       sChip.textContent = `ESTÁGIO ${st}`; sChip.style.color = meta.accent;
       document.getElementById('skinStageTitle').textContent = meta.title;
       const cLbl = document.getElementById('skinClassLabel');
-      cLbl.textContent = `Classe: ${cls.name}`; cLbl.style.color = cls.color;
+      cLbl.textContent = `Classe: ${cls.icon} ${cls.name} (LVL ${lvlInfo.level})`;
+      cLbl.style.color = cls.color;
 
       loadImageChain(document.getElementById('skinRealImg'), skinImgUrls(st));
     }
@@ -2829,10 +3198,39 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
       document.getElementById('kpiVisits').textContent = state.metrics.visits || 0;
     }
 
+    function renderMorningAuras() {
+      const strip = document.getElementById('morningAuraStrip');
+      const auras = state.today.morningAuras || {};
+      const open = isMorningAuraWindowOpen();
+      const activeList = MORNING_AURAS.filter(a => auras[a.id]);
+
+      if (!open && activeList.length === 0) {
+        strip.classList.add('hidden');
+        return;
+      }
+
+      strip.classList.remove('hidden');
+      const itemsToRender = open ? MORNING_AURAS : activeList;
+      strip.innerHTML = `
+        <div class="morning-aura-label">
+          <span>☀ Aura Matinal</span>
+          <span style="font-weight:500; color:var(--text-2); text-transform:none;">${open ? '(até 09h59 • +20% XP & +0.5 atr em 100%)' : '(ativas até 01h00)'}</span>
+        </div>
+        <div class="morning-aura-chips">
+          ${itemsToRender.map(a => {
+            const on = Boolean(auras[a.id]);
+            return `<button class="aura-chip ${on ? a.chipCss : ''}" ${!open ? 'disabled' : ''} onclick="toggleMorningAura('${a.id}')">${a.label}${on ? ` • +20% / +0.5 ${a.attrShort}` : ''}</button>`;
+          }).join('')}
+        </div>
+      `;
+    }
+
     function renderFaixa3() {
       const closedToday = state.today.date > getGameDate();
       const card = document.getElementById('faixa3Ops');
       card.classList.toggle('alvorada-active', state.today.alvorada);
+
+      renderMorningAuras();
 
       document.getElementById('dailyDateSubtitle').textContent = `• Ciclo de ${formatDateBR(state.today.date)}${closedToday ? ' (aguardando 01h)' : ''}`;
       const closeBtn = document.getElementById('closeDayBtn');
@@ -2863,34 +3261,31 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
       const mToday = MENTORS[state.today.councilMentorIdx % MENTORS.length];
       const microText = MENTOR_MICRO_MISSIONS[mToday.id][state.today.councilMicroIdx % 3];
       const lv = state.today.levels;
+      const auras = state.today.morningAuras || {};
 
       const fixedTiles = [
         {
           key: 'padock',
           title: 'Execução Inegociável (Padock.on)',
           badge: lv.padock >= 70 ? '<span class="badge emerald">STREAK OK</span>' : '<span class="badge rose">STREAK 70%+</span>',
-          desc: '40%: 1 entrega (funcionalidade front-end, nova página ou landing) • 70%: 2 entregas • 100%: 3 entregas ou feito extraordinário.',
           extraClass: `streak-core ${lv.padock >= 70 ? 'streak-safe' : ''}`
         },
         {
           key: 'treino',
-          title: 'Treino Físico (Musculação / Corrida / Tênis)',
+          title: 'Treino Físico (Musc. / Corrida / Tênis)',
           badge: state.today.tacticalRestUsedToday ? '<span class="badge emerald">🛡️ PROTEGIDO</span>' : '<span class="badge cyan">FÍSICO</span>',
-          desc: '40%: Mínimo Viável (25-30m / 3-5 km) • 70%: Treino Completo (6-9 km / sessão cheia) • 100%: Modo Monstro (Combo Híbrido / 10 km+ / PR).',
           extraClass: state.today.tacticalRestUsedToday ? 'tactical-shield-active' : ''
         },
         {
           key: 'ingles',
           title: 'Elo Global (Inglês)',
           badge: '<span class="badge cyan">ELO GLOBAL</span>',
-          desc: '40%: Imersão Passiva (20m+ sem PT) • 70%: Input + Output (shadowing / leitura / 2+ chunks) • 100%: Combate Real (pitch / texto / avaliação).',
           extraClass: ''
         },
         {
           key: 'conselho',
           title: `Bloco do Conselho — ${mToday.name}`,
           badge: '<span class="badge purple">AFINIDADE</span>',
-          desc: '40%: 15-20m conteúdo (+0.25h) • 70%: + Micro-missão (+0.5h) • 100%: Aplicado na prática (+1h).',
           micro: microText,
           extraClass: ''
         }
@@ -2898,18 +3293,23 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
 
       let html = fixedTiles.map(t => {
         const isCrit = mod.id === 'critical_window' && state.today.criticalKey === t.key;
+        const activeAura = MORNING_AURAS.find(a => a.missionKey === t.key && auras[a.id]);
+        const pct = lv[t.key] ?? 0;
+        const activeTierText = MISSION_TIERS[t.key][pct] || '';
+
         return `
-          <div class="mission-tile ${t.extraClass} ${isCrit ? 'critical' : ''}">
+          <div class="mission-tile ${t.extraClass} ${isCrit ? 'critical' : ''} ${activeAura ? activeAura.tileCss : ''}">
             <div>
               <div class="tile-head">
                 <div class="tile-title">${t.title}</div>
-                <div style="display:flex; gap:4px;">${isCrit ? '<span class="badge gold">2x</span>' : ''}${t.badge}</div>
+                <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end;">${isCrit ? '<span class="badge gold">2x</span>' : ''}${t.badge}</div>
               </div>
-              <div class="tile-desc" style="margin-top:4px;">${t.desc}</div>
+              ${activeAura ? `<div class="aura-tag">✨ AURA ATIVA • +20% XP | +0.5 ${activeAura.attrShort} (em 100%)</div>` : ''}
+              <div class="tile-desc-clean"><strong>${pct}%:</strong> ${activeTierText}</div>
               ${t.micro ? `<div class="tile-micro" style="margin-top:6px;">🎯 ${t.micro}</div>` : ''}
             </div>
             <div class="seg-bar">
-              ${[0, 40, 70, 100].map(v => `<button class="seg-btn ${lv[t.key] === v ? 'active-' + v : ''}" ${closedToday ? 'disabled' : ''} onclick="setTaskLevel('${t.key}', ${v})">${v}%</button>`).join('')}
+              ${[0, 40, 70, 100].map(v => `<button class="seg-btn ${pct === v ? 'active-' + v : ''}" ${closedToday ? 'disabled' : ''} onclick="setTaskLevel('${t.key}', ${v})">${v}%</button>`).join('')}
             </div>
           </div>
         `;
@@ -2928,17 +3328,17 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
               <span class="badge ${state.today.lightningDone ? 'emerald' : 'purple'}">${state.today.lightningDone ? 'Feita ✓' : 'Opcional'}</span>
             </div>
             <div style="font-size:0.8rem; font-weight:700; color:#f3e8ff; margin:6px 0;">${lmTitle}</div>
-            <div class="tile-desc">+${lm.xp} XP • +${lm.attrGain} ${attrLabel(lm.attr)} • Não afeta Streak</div>
+            <div class="card-sub">+${lm.xp} XP • +${lm.attrGain} ${attrLabel(lm.attr)} • Não afeta Streak</div>
           </div>
           <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:auto;">
             <button class="btn btn-xs ${state.today.lightningDone ? 'btn-primary' : ''}" ${closedToday ? 'disabled' : ''} onclick="toggleLightningTask()">${state.today.lightningDone ? '✓ Concluída' : 'Marcar Feita'}</button>
-            <button class="btn btn-xs btn-purple" onclick="validateLightningWithMage()">🧙 Tecnomago</button>
+            <button class="btn btn-xs btn-purple" onclick="copyLightningForValidation()">📋 Validar no Chat</button>
             <button class="btn btn-xs" ${state.rerollRemaining <= 0 || closedToday ? 'disabled' : ''} onclick="rerollLightningMission()">🎲 (${state.rerollRemaining}/1)</button>
           </div>
         </div>
       `;
 
-      // 6º CARD: MISSÃO AGENDADA DO DIA (OU PREVIEW DA PRÓXIMA DATA)
+      // 6º CARD: MISSÃO AGENDADA DO DIA
       const dueToday = state.scheduledMissions.filter(m => m.date === state.today.date);
       if (dueToday.length > 0) {
         html += `
@@ -2970,9 +3370,9 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
                 <span class="badge">Livre Hoje</span>
               </div>
               ${nextUp ? `
-                <div class="tile-desc" style="margin-top:6px;">Próxima missão agendada em <strong style="color:var(--cyan);">${daysLeft} dia(s)</strong> (${formatDateBR(nextUp.date)}):</div>
+                <div class="card-sub" style="margin-top:6px;">Próxima missão agendada em <strong style="color:var(--cyan);">${daysLeft} dia(s)</strong> (${formatDateBR(nextUp.date)}):</div>
                 <div class="tile-micro" style="margin-top:6px; border-left-color:var(--cyan);">${escapeHtml(nextUp.title)}</div>
-              ` : `<div class="tile-desc" style="margin-top:8px;">Nenhuma missão futura agendada. Use a Faixa 5 para criar datas-alvo.</div>`}
+              ` : `<div class="card-sub" style="margin-top:8px;">Nenhuma missão futura agendada. Use a Faixa 5 para criar datas-alvo.</div>`}
             </div>
           </div>
         `;
@@ -3017,16 +3417,6 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
           card.querySelector(`#avWrap_${m.id}`).innerHTML = `<div class="avatar-fallback">${m.initials}</div>`;
         });
       });
-    }
-
-    function renderChat() {
-      const box = document.getElementById('chatBox');
-      box.innerHTML = state.chat.map(m => `<div class="msg msg-${m.role}">${escapeHtml(m.text)}</div>`).join('');
-      box.scrollTop = box.scrollHeight;
-      const hasKey = !!localStorage.getItem('brava_gemini_key');
-      document.getElementById('apiStatusText').textContent = hasKey
-        ? 'Gemini 2.5 Pro + Fallback Flash (ativo)'
-        : 'Chave Gemini não configurada (⚙ Config / API)';
     }
 
     function renderLogs() {
@@ -3121,7 +3511,6 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
       renderPadockCard();
       renderFaixa3();
       renderCouncil();
-      renderChat();
       renderLogs();
       renderScheduledList();
       renderSeasons();
