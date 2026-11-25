@@ -2228,16 +2228,38 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
       };
 
       try {
-        const models = ['gemini-3.8-flash', 'gemini-3.8-pro', 'gemini-2.5-flash'];
+        const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+        const models = ['gemini-3.8-flash'];
+
+        try {
+          const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`);
+          if (listRes.ok) {
+            const listData = await listRes.json();
+            const extras = (listData.models || [])
+              .filter(m => m.supportedGenerationMethods?.includes('generateContent') && /gemini/i.test(m.name))
+              .map(m => m.name.replace(/^models\//, ''))
+              .filter(name => !models.includes(name) && !/embedding|tts|image|veo|audio|2\.0|2\.5-flash$/i.test(name));
+            models.push(...extras.slice(0, 4));
+          }
+        } catch {}
+
         let data = null;
         const errors = [];
         for (const m of models) {
-          try {
-            data = await callModel(m);
-            break;
-          } catch (err) {
-            errors.push(err.message);
+          for (let attempt = 1; attempt <= 2; attempt++) {
+            try {
+              data = await callModel(m);
+              break;
+            } catch (err) {
+              errors.push(err.message);
+              if (err.message.startsWith('503') && attempt === 1) {
+                await sleep(2500);
+                continue;
+              }
+              break;
+            }
           }
+          if (data) break;
         }
         if (!data) throw new Error(errors.join(' | '));
         const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sem resposta da API.';
