@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>PROJETO BRAVA v3.0.1 — matheus.bac</title>
+<title>PROJETO BRAVA v3.0 — matheus.bac</title>
 <style>
   :root {
     --bg: #07090f;
@@ -22,8 +22,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
   body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 14px; line-height: 1.4; }
   button { cursor: pointer; border: none; border-radius: 8px; font-weight: 600; transition: .15s ease; }
-  button:hover:not(:disabled) { filter: brightness(1.12); }
-  button:disabled { opacity: .5; cursor: not-allowed; }
+  button:hover { filter: brightness(1.12); }
   input, textarea, select { background: #0a0e17; color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; outline: none; }
   input:focus, textarea:focus { border-color: var(--cyan); }
 
@@ -141,7 +140,7 @@
     <div class="hud-actions">
       <button class="btn-ghost" onclick="openSkinsModal()">🏆 Evoluções</button>
       <button class="btn-ghost" onclick="openSettingsModal()">⚙️ Config / API</button>
-      <button class="btn-primary" id="closeDayBtn" onclick="closeDayManual()">🌙 Encerrar Dia</button>
+      <button class="btn-primary" onclick="closeDayManual()">🌙 Encerrar Dia</button>
     </div>
   </div>
 
@@ -229,7 +228,7 @@
         <div class="mage-header">
           <img class="mage-avatar" src="mestre.jpg" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 50 50%22><rect width=%2250%22 height=%2250%22 fill=%22%231e1b4b%22/><text x=%2225%22 y=%2232%22 font-size=%2222%22 text-anchor=%22middle%22 fill=%22%23a855f7%22>🧙</text></svg>'" />
           <div>
-            <div style="font-weight:700;font-size:.9rem">Tecnomago — Guardião da v3.0.1</div>
+            <div style="font-weight:700;font-size:.9rem">Tecnomago — Guardião da v3.0</div>
             <div style="font-size:.72rem;color:var(--muted)" id="apiStatusText">Chave Gemini não configurada</div>
           </div>
         </div>
@@ -245,7 +244,7 @@
 
         <div class="chat-input-row">
           <textarea id="chatInput" placeholder="Relate treino, corrida, caminhada, inglês ou cole a telemetria..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
-          <button class="btn-primary" id="sendChatBtn" onclick="sendChat()">Enviar</button>
+          <button class="btn-primary" onclick="sendChat()">Enviar</button>
         </div>
       </div>
 
@@ -260,7 +259,7 @@
 <div class="modal-bg" id="skinsModal">
   <div class="modal">
     <div class="card-title"><span>🏆 Evoluções Conquistadas</span><button class="btn-ghost" onclick="closeModal('skinsModal')">✕</button></div>
-    <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px">Modo 100% anti-spoiler: novas skins só são reveladas quando você desbloqueia.</p>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px">Modo 100% anti-spoiler: novas skins só são reveladas quando você desbloqueia ao encerrar o dia.</p>
     <div id="skinsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px"></div>
   </div>
 </div>
@@ -298,20 +297,14 @@
   </div>
 </div>
 
-<!-- MODAL CELEBRATION DESBLOQUEIO (COM BOTÃO DE REVELAÇÃO PARA GARANTIR O ÁUDIO) -->
+<!-- MODAL CELEBRATION DESBLOQUEIO -->
 <div class="modal-bg" id="unlockModal">
   <div class="modal unlock-modal">
     <span class="badge badge-amber">🎸 NOVA EVOLUÇÃO DESBLOQUEADA!</span>
-    <div id="unlockPreReveal" style="margin:16px 0">
-      <p style="font-size:.9rem;color:#cbd5e1;margin-bottom:14px">Você atingiu um novo patamar. Clique abaixo para revelar sua evolução com som!</p>
-      <button class="btn-amber" onclick="revealPendingSkin()">🎸 Revelar Evolução</button>
-    </div>
-    <div id="unlockRevealed" style="display:none">
-      <h2 id="unlockTitle" style="margin-top:8px;color:var(--gold)"></h2>
-      <img id="unlockImg" class="unlock-img" src="" />
-      <p id="unlockSong" style="font-size:.82rem;color:var(--cyan);margin-bottom:12px"></p>
-      <button class="btn-amber" onclick="finishUnlockModal()">Equipar e Continuar</button>
-    </div>
+    <h2 id="unlockTitle" style="margin-top:8px;color:var(--gold)"></h2>
+    <img id="unlockImg" class="unlock-img" src="" />
+    <p id="unlockSong" style="font-size:.82rem;color:var(--cyan);margin-bottom:12px"></p>
+    <button class="btn-amber" onclick="closeModal('unlockModal')">Equipar e Continuar</button>
   </div>
 </div>
 
@@ -354,9 +347,6 @@ const COUNCIL_PROMPTS = [
   { mentor:'Marco Aurélio', q:'What obstacle in your routine or business right now can become the exact fuel for your discipline?' }
 ];
 
-let isSendingChat = false;
-let currentUnlockSkinId = null;
-
 function getGameDate(dateObj = new Date()) {
   // Virada automática à 01:00 da manhã
   const shifted = new Date(dateObj.getTime() - 60 * 60 * 1000);
@@ -366,38 +356,10 @@ function getGameDate(dateObj = new Date()) {
   return `${y}-${m}-${d}`;
 }
 
-function addDays(dateStr, days) {
-  const dt = new Date(dateStr + 'T12:00:00');
-  dt.setDate(dt.getDate() + days);
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth() + 1).padStart(2, '0');
-  const d = String(dt.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-function daysBetween(startStr, endStr) {
-  const a = new Date(startStr + 'T12:00:00');
-  const b = new Date(endStr + 'T12:00:00');
-  return Math.round((b - a) / 86400000);
-}
-
-function getWeekStart(dateStr) {
-  // Retorna a segunda-feira daquela semana (YYYY-MM-DD)
-  const dt = new Date(dateStr + 'T12:00:00');
-  const day = dt.getDay();
-  const diff = (day === 0 ? -6 : 1 - day);
-  dt.setDate(dt.getDate() + diff);
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth() + 1).padStart(2, '0');
-  const d = String(dt.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
 function defaultState() {
-  const today = getGameDate();
   return {
-    version: '3.0.1',
-    lastActiveDate: today,
+    version: '3.0',
+    lastActiveDate: getGameDate(),
     xp: 0,
     level: 1,
     streak: 0,
@@ -423,7 +385,7 @@ function defaultState() {
     },
     sageIndex: 0,
     tacticalRestLeft: 2,
-    lastWeekReset: getWeekStart(today),
+    lastWeekReset: getGameDate(),
     daily: {
       padock: 0,
       treino: 0,
@@ -476,10 +438,10 @@ function defaultState() {
       }
     },
     chat: [
-      { role:'ai', text:'Bem-vindo à v3.0.1, matheus.bac. Hoje (24/11) é Dia 0 de Calibração — nada soma ou penaliza até 25/11. Seu Marco Zero físico (72 kg, 10 km, cargas base) já está gravado na minha memória. Quando treinar ou avançar na Padock.on, me chame aqui.' }
+      { role:'ai', text:'Bem-vindo à v3.0, matheus.bac. Hoje (24/11) é Dia 0 de Calibração — nada soma ou penaliza até 25/11. Seu Marco Zero físico (72 kg, 10 km, cargas base) já está gravado na minha memória. Quando treinar ou avançar na Padock.on, me chame aqui.' }
     ],
     logs: [
-      { date: today, text: 'Sistema atualizado para Projeto Brava v3.0.1. Físico & Energia calibrado em 24.0.' }
+      { date: getGameDate(), text: 'Sistema atualizado para Projeto Brava v3.0. Físico & Energia calibrado em 24.0.' }
     ]
   };
 }
@@ -488,11 +450,7 @@ let state = loadState();
 
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    if (!parsed.lastWeekReset) parsed.lastWeekReset = getWeekStart(parsed.lastActiveDate || getGameDate());
-    return parsed;
-  }
+  if (saved) return JSON.parse(saved);
   const st = defaultState();
   const old = localStorage.getItem(OLD_KEY);
   if (old) {
@@ -510,8 +468,8 @@ function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-function isCalibrationDay(dateStr = state.lastActiveDate) {
-  return dateStr < OFFICIAL_START;
+function isCalibrationDay() {
+  return state.lastActiveDate < OFFICIAL_START;
 }
 
 function xpForNextLevel(lvl) {
@@ -574,32 +532,25 @@ function testRockRiff() {
   showToast('🎸 Tocando: ' + name);
 }
 
-/* ===== VIRADA AUTOMÁTICA (01h00), DIAS PULADOS & ENCERRAMENTO ===== */
+/* ===== VIRADA AUTOMÁTICA (01h00) & ENCERRAMENTO ===== */
 function checkAutoRollover() {
   const today = getGameDate();
-  const diff = daysBetween(state.lastActiveDate, today);
-
-  if (diff >= 1) {
-    processDayEnd(true, today, diff);
+  if (today > state.lastActiveDate) {
+    processDayEnd(true, today);
   }
-  if (state.pendingUnlocks.length > 0 && !currentUnlockSkinId) {
-    openUnlockModal(state.pendingUnlocks.shift(), true);
+  if (state.pendingUnlocks.length > 0) {
+    const skinId = state.pendingUnlocks.shift();
     saveState();
+    triggerUnlockCelebration(skinId);
   }
 }
 
 function closeDayManual() {
-  const today = getGameDate();
-  if (state.lastActiveDate > today) {
-    return showToast('O dia de hoje já foi encerrado! Aguarde a virada às 01h00.');
-  }
-  processDayEnd(false, addDays(state.lastActiveDate, 1), 1);
+  processDayEnd(false, getGameDate());
 }
 
-function processDayEnd(isAuto, newDate, daysElapsed = 1) {
-  const closingDate = state.lastActiveDate;
-  const cal = isCalibrationDay(closingDate);
-
+function processDayEnd(isAuto, newDate) {
+  const cal = isCalibrationDay();
   if (!cal) {
     const multMap = { 0: 0, 40: 0.55, 70: 1.0, 100: 1.25 };
     let xpGain = 0;
@@ -631,30 +582,19 @@ function processDayEnd(isAuto, newDate, daysElapsed = 1) {
     }
 
     applyXP(xpGain, isAuto);
-    addLog(`Dia ${closingDate} encerrado (${isAuto ? 'auto 01h' : 'manual'}): +${xpGain} XP • Streak: ${state.streak}d.`);
+    addLog(`Dia ${state.lastActiveDate} encerrado (${isAuto ? 'auto 01h' : 'manual'}): +${xpGain} XP • Streak: ${state.streak}d.`);
   } else {
-    addLog(`Dia 0 (${closingDate}) encerrado sem alteração de pontos.`);
-  }
-
-  // Se ficou 2+ dias sem abrir após o início oficial, os dias pulados quebram o Streak
-  if (daysElapsed >= 2 && newDate > OFFICIAL_START) {
-    const skipped = daysElapsed - 1;
-    state.streak = 0;
-    addLog(`⚠️ ${skipped} dia(s) sem registro — Streak resetado para 0.`);
+    addLog(`Dia 0 (${state.lastActiveDate}) encerrado sem alteração de pontos.`);
   }
 
   state.lastActiveDate = newDate;
   state.sageIndex = (state.sageIndex + 1) % SAGES.length;
-
-  // Reset semanal à prova de falhas (por semana calendário)
-  const currentWeek = getWeekStart(newDate);
-  if (currentWeek !== state.lastWeekReset) {
+  const dayOfWeek = new Date(newDate + 'T12:00:00').getDay();
+  if (dayOfWeek === 1 && state.lastWeekReset !== newDate) {
     state.tacticalRestLeft = 2;
-    state.lastWeekReset = currentWeek;
+    state.lastWeekReset = newDate;
     state.fitnessDB.weeklyKm = 0;
-    addLog('🔄 Nova semana iniciada: Descanso Tático (2/2) e km semanais renovados.');
   }
-
   state.daily = {
     padock: 0, treino: 0, estrategico: 0, ingles: 0,
     alvorada: false, tacticalRestUsedToday: false, hybridComboDone: false,
@@ -679,41 +619,20 @@ function applyXP(amount, queueCelebration = false) {
         state.unlockedSkins.push(sk.id);
         state.activeSkin = sk.id;
         if (queueCelebration) state.pendingUnlocks.push(sk.id);
-        else openUnlockModal(sk.id, false);
+        else triggerUnlockCelebration(sk.id);
       }
     });
   }
 }
 
-function openUnlockModal(skinId, requireClickForAudio) {
-  currentUnlockSkinId = skinId;
-  document.getElementById('unlockModal').classList.add('open');
-  if (requireClickForAudio) {
-    document.getElementById('unlockPreReveal').style.display = 'block';
-    document.getElementById('unlockRevealed').style.display = 'none';
-  } else {
-    revealPendingSkin();
-  }
-}
-
-function revealPendingSkin() {
-  const sk = SKINS_CATALOG.find(s => s.id === currentUnlockSkinId);
+function triggerUnlockCelebration(skinId) {
+  const sk = SKINS_CATALOG.find(s => s.id === skinId);
   if (!sk) return;
   const song = playRandomRockRiff();
-  document.getElementById('unlockPreReveal').style.display = 'none';
-  document.getElementById('unlockRevealed').style.display = 'block';
   document.getElementById('unlockTitle').textContent = sk.name;
   document.getElementById('unlockImg').src = sk.file;
   document.getElementById('unlockSong').textContent = '🎸 Riff sorteado: ' + song;
-}
-
-function finishUnlockModal() {
-  currentUnlockSkinId = null;
-  closeModal('unlockModal');
-  if (state.pendingUnlocks.length > 0) {
-    openUnlockModal(state.pendingUnlocks.shift(), false);
-    saveState();
-  }
+  document.getElementById('unlockModal').classList.add('open');
 }
 
 /* ===== AÇÕES DO PAINEL ===== */
@@ -797,29 +716,11 @@ function sendCouncilToMage() {
   document.getElementById('councilAnswer').value = '';
 }
 
-/* ===== TORRE DO TECNOMAGO (GEMINI 2.5 PRO + FALLBACK FLASH + MEMÓRIA + TRAVA) ===== */
-function buildSanitizedHistory() {
-  const raw = state.chat.filter(m => m.role === 'user' || m.role === 'ai').slice(-12);
-  const contents = [];
-  for (const m of raw) {
-    const role = m.role === 'user' ? 'user' : 'model';
-    if (contents.length === 0 && role !== 'user') continue; // Garante 1º turno sempre 'user'
-    if (contents.length > 0 && contents[contents.length - 1].role === role) {
-      contents[contents.length - 1].parts[0].text += '\n' + m.text;
-    } else {
-      contents.push({ role, parts: [{ text: m.text }] });
-    }
-  }
-  return contents;
-}
-
+/* ===== TORRE DO TECNOMAGO (GEMINI 2.5 PRO + FALLBACK FLASH + MEMÓRIA) ===== */
 async function sendChat() {
-  if (isSendingChat) return;
   const inp = document.getElementById('chatInput');
-  const btn = document.getElementById('sendChatBtn');
   const text = inp.value.trim();
   if (!text) return;
-
   const apiKey = localStorage.getItem('brava_gemini_key');
   state.chat.push({ role:'user', text });
   inp.value = '';
@@ -832,30 +733,28 @@ async function sendChat() {
     return;
   }
 
-  isSendingChat = true;
-  btn.disabled = true;
-  btn.textContent = '...';
-
-  const systemPrompt = `Você é o Tecnomago do Projeto Brava v3.0.1, mentor direto, equilibrado e anti-farm de matheus.bac (23 anos, 72 kg, criador da Padock.on).
+  const systemPrompt = `Você é o Tecnomago do Projeto Brava v3.0, mentor direto, equilibrado e anti-farm de matheus.bac (23 anos, 72 kg, criador da Padock.on).
 ESTADO ATUAL:
 - Data do jogo: ${state.lastActiveDate} (${isCalibrationDay() ? 'DIA 0 CALIBRAÇÃO - não dê XP' : 'OFICIAL'})
 - Padock.on: Estágio ${state.padockStage} (${state.padockSummary})
 - Missão Relâmpago hoje: "${LIGHTNING_POOL[state.daily.lightningIdx]}" (Concluída: ${state.daily.lightningDone})
-- Combo Híbrido hoje já aplicado: ${state.daily.hybridComboDone}
 - Database Física (Marco Zero): ${JSON.stringify(state.fitnessDB)}
 
 REGRAS OBRIGATÓRIAS:
 1. TREINO FÍSICO: Sempre que matheus.bac relatar grupos musculares treinados hoje (ex: peito e tríceps), PERGUNTE a carga de um exercício específico de cada grupo treinado usando a database dele (ex: "Pegou quanto no supino inclinado com halteres? E no tríceps na polia?"). Se ele disser que não fez aquele exercício, troque imediatamente por outro exercício do mesmo grupo da lista. Só dê bônus de PR se ele superar o Marco Zero.
-2. COMBO HÍBRIDO: Treino + 6 km logo após (máx 1x/dia, só se hybridComboDone for false): marque "hybridCombo": true (+25 XP, +0.25 físico, +0.15 disciplina).
+2. COMBO HÍBRIDO: Treino + 6 km logo após (máx 1x/dia): +25 XP, +0.25 físico, +0.15 disciplina.
 3. ECONOMIA EQUILIBRADA (HARD CAPS): Nunca infle XP. Evento Raro máx 60 XP. PR: 20-35 XP. Caminhada da Sabedoria: soma afinidade no mentor + Listening (+0.2 a +0.4). Conselho aprovado: +60 XP, +0.5 intelecto, +0.4 writing. Missão Relâmpago aprovada: +30 XP + lightningDone=true.
-4. PADOCK.ON SYNC: Ao receber [TELEMETRIA PADOCK.ON], atualize "padockSummary" com um resumo curto da situação real, mude "padockStage" (1 a 5) se houve virada real e dê XP/Engenharia/Comercial proporcionais ao impacto real.
+4. PADOCK.ON SYNC: Ao receber [TELEMETRIA PADOCK.ON], atualize o resumo, mude o estágio (1 a 5) se houve virada real e dê XP/Engenharia/Comercial proporcionais ao impacto real.
 
 Ao final da sua resposta normal em português, SE houver alguma ação para aplicar no jogo, inclua EXATAMENTE um bloco JSON:
 \`\`\`json
-{ "xp": 0, "attrs": { "engenharia": 0, "comercial": 0, "intelecto": 0, "disciplina": 0, "fisico": 0 }, "elo": { "listening": 0, "reading": 0, "speaking": 0, "writing": 0 }, "padockStage": null, "padockSummary": "", "lightningDone": false, "addRunKm": 0, "hybridCombo": false, "log": "" }
+{ "xp": 0, "attrs": { "engenharia": 0, "comercial": 0, "intelecto": 0, "disciplina": 0, "fisico": 0 }, "elo": { "listening": 0, "reading": 0, "speaking": 0, "writing": 0 }, "padockStage": null, "lightningDone": false, "addRunKm": 0, "hybridCombo": false, "log": "" }
 \`\`\``;
 
-  const history = buildSanitizedHistory();
+  const history = state.chat
+    .filter(m => m.role === 'user' || m.role === 'ai')
+    .slice(-12)
+    .map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.text }] }));
 
   const callModel = async (model) => {
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
@@ -881,13 +780,9 @@ Ao final da sua resposta normal em português, SE houver alguma ação para apli
     state.chat.push({ role:'ai', text: processMageActions(reply) });
   } catch (e) {
     state.chat.push({ role:'ai', text:'Falha de conexão com a API do Gemini. Verifique sua chave.' });
-  } finally {
-    isSendingChat = false;
-    btn.disabled = false;
-    btn.textContent = 'Enviar';
-    saveState();
-    renderAll();
   }
+  saveState();
+  renderAll();
 }
 
 function processMageActions(reply) {
@@ -917,23 +812,12 @@ function processMageActions(reply) {
           }
         });
       }
-      if (act.hybridCombo && !state.daily.hybridComboDone) {
-        state.daily.hybridComboDone = true;
-        applyXP(25);
-        state.attributes.fisico = Math.min(100, +(state.attributes.fisico + 0.25).toFixed(2));
-        state.attributes.disciplina = Math.min(100, +(state.attributes.disciplina + 0.15).toFixed(2));
-        summary.push('Combo Híbrido ✓');
-      }
     }
     if (act.padockStage >= 1 && act.padockStage <= 5 && act.padockStage !== state.padockStage) {
       state.padockStage = act.padockStage;
       summary.push(`Padock → Estágio ${act.padockStage}`);
     }
-    if (act.padockSummary && typeof act.padockSummary === 'string' && act.padockSummary.trim()) {
-      state.padockSummary = act.padockSummary.trim();
-      summary.push('Memória Padock ✓');
-    }
-    if (act.lightningDone && !state.daily.lightningDone) {
+    if (act.lightningDone) {
       state.daily.lightningDone = true;
       summary.push('Relâmpago ✓');
     }
@@ -950,23 +834,16 @@ function processMageActions(reply) {
 /* ===== RENDERIZAÇÃO ===== */
 function renderAll() {
   const nextXP = xpForNextLevel(state.level);
-  const today = getGameDate();
-  const closedToday = state.lastActiveDate > today;
-
   document.getElementById('lvlBadge').textContent = `LVL ${state.level}`;
   document.getElementById('streakBadge').textContent = `🔥 Streak: ${state.streak}d`;
   const modeBadge = document.getElementById('dayModeBadge');
-  modeBadge.textContent = isCalibrationDay() ? 'DIA 0 — CALIBRAÇÃO' : 'OFICIAL • v3.0.1';
+  modeBadge.textContent = isCalibrationDay() ? 'DIA 0 — CALIBRAÇÃO' : 'OFICIAL • v3.0';
   modeBadge.className = isCalibrationDay() ? 'badge badge-amber' : 'badge badge-green';
   document.getElementById('xpText').textContent = `${state.xp} / ${nextXP} XP • Virada automática: 01h00`;
   document.getElementById('xpFill').style.width = `${Math.min(100, (state.xp / nextXP) * 100)}%`;
-  document.getElementById('dateStatus').textContent = `Data ativa: ${state.lastActiveDate}${closedToday ? ' (aguardando 01h)' : ''} • Corrida semana: ${state.fitnessDB.weeklyKm} km`;
+  document.getElementById('dateStatus').textContent = `Data ativa: ${state.lastActiveDate} • Corrida semana: ${state.fitnessDB.weeklyKm} km`;
   const activeSk = SKINS_CATALOG.find(s => s.id === state.activeSkin) || SKINS_CATALOG[0];
   document.getElementById('hudSkin').src = activeSk.file;
-
-  const closeBtn = document.getElementById('closeDayBtn');
-  closeBtn.disabled = closedToday;
-  closeBtn.textContent = closedToday ? '✓ Dia Encerrado' : '🌙 Encerrar Dia';
 
   const stg = PADOCK_STAGES[state.padockStage - 1];
   const ban = document.getElementById('padockBanner');
@@ -1177,7 +1054,6 @@ function importBackup(e) {
   reader.onload = ev => {
     try {
       state = JSON.parse(ev.target.result);
-      if (!state.lastWeekReset) state.lastWeekReset = getWeekStart(state.lastActiveDate || getGameDate());
       saveState();
       renderAll();
       showToast('Backup restaurado com sucesso!');
