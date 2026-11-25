@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PROJETO BRAVA v3.2 — HUD da Soberania</title>
+  <title>PROJETO BRAVA v3.3 — HUD da Soberania</title>
   <style>
     :root {
       --bg-0: #060911;
@@ -194,8 +194,8 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(90deg, rgba(6, 9, 17, 0.90) 0%, rgba(6, 9, 17, 0.62) 45%, rgba(6, 9, 17, 0.28) 100%),
-        linear-gradient(0deg, rgba(6, 9, 17, 0.92) 0%, transparent 55%);
+        linear-gradient(90deg, rgba(6, 9, 17, 0.54) 0%, rgba(6, 9, 17, 0.22) 48%, rgba(6, 9, 17, 0.06) 100%),
+        linear-gradient(0deg, rgba(6, 9, 17, 0.68) 0%, transparent 48%);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -229,8 +229,8 @@
       50% { box-shadow: 0 0 18px 2px rgba(245, 158, 11, 0.35); }
     }
     .hero-bottom-row { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px; }
-    .hero-identity h2 { font-size: 1.48rem; font-weight: 800; letter-spacing: 0.02em; margin-bottom: 2px; }
-    .hero-identity p { color: var(--text-1); font-size: 0.84rem; }
+    .hero-identity h2 { font-size: 1.48rem; font-weight: 800; letter-spacing: 0.02em; margin-bottom: 2px; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85); }
+    .hero-identity p { color: var(--text-0); font-size: 0.84rem; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9); }
     .hero-stats { display: flex; gap: 10px; flex-wrap: wrap; }
     .stat-chip {
       background: rgba(12, 18, 32, 0.85);
@@ -459,16 +459,119 @@
     }
     .kpi-mini .k-lbl { font-size: 0.63rem; text-transform: uppercase; color: var(--text-2); }
     .kpi-mini .k-val { font-size: 0.92rem; font-weight: 800; color: var(--cyan); }
-    .padock-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto; }
+    .padock-header-center {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .padock-header-center .card-title { grid-column: 2; justify-content: center; }
+    .padock-header-center .badge { grid-column: 3; justify-self: end; }
+    .padock-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 9px;
+    }
+    .padock-toggle-btn {
+      background: rgba(6, 9, 17, 0.72);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      padding: 6px 8px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .padock-toggle-btn:hover { border-color: var(--cyan); color: var(--text-0); }
+    .padock-toggle-btn.active-gargalo {
+      background: rgba(245, 158, 11, 0.16);
+      border-color: var(--gold);
+      color: #fde68a;
+    }
+    .padock-toggle-btn.active-telemetria {
+      background: rgba(34, 211, 238, 0.14);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+    .padock-actions { display: flex; margin-top: auto; }
+    .padock-actions .btn { width: 100%; padding: 10px 14px; font-size: 0.82rem; font-weight: 700; }
+
+    /* MINI FOTO CIRCULAR DO MENTOR NA OPERAÇÃO DIÁRIA */
+    .tile-title-row { display: flex; align-items: center; gap: 7px; }
+    .tile-mentor-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: top center;
+      border: 1px solid var(--purple);
+      box-shadow: 0 0 8px rgba(168, 85, 247, 0.35);
+      flex-shrink: 0;
+    }
+    .tile-mentor-fallback {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(168, 85, 247, 0.22);
+      border: 1px solid var(--purple);
+      color: #e9d5ff;
+      font-size: 0.62rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* POP-UP DE BALANÇO DO DIA */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .summary-box {
+      background: rgba(6, 9, 17, 0.68);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .summary-box .s-lbl {
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-2);
+    }
+    .summary-box .s-val {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-top: 2px;
+      color: var(--text-0);
+    }
+    .summary-section {
+      background: rgba(6, 9, 17, 0.56);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 9px;
+    }
+    .summary-section-title {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-2);
+      margin-bottom: 6px;
+    }
+    .summary-pills { display: flex; flex-wrap: wrap; gap: 6px; }
 
     /* ============================================================
      * FAIXA 3: OPERAÇÃO DIÁRIA + AURA MATINAL (ATÉ 09h59)
      * ============================================================ */
     .faixa-3-card { margin-bottom: 16px; position: relative; }
-    .faixa-3-card.alvorada-active {
-      border-color: rgba(245, 158, 11, 0.72);
-      box-shadow: 0 0 28px rgba(245, 158, 11, 0.18), inset 0 0 22px rgba(245, 158, 11, 0.05);
-    }
     .ops-top-bar {
       display: flex;
       justify-content: space-between;
@@ -987,7 +1090,7 @@
     <!-- TOP BAR -->
     <header class="topbar">
       <div class="brand">
-        <span class="brand-badge">v3.2 RPG HUD</span>
+        <span class="brand-badge">v3.3 RPG HUD</span>
         <h1>Projeto Brava</h1>
       </div>
       <div class="top-actions">
@@ -1011,7 +1114,7 @@
             <span>●</span> <span id="heroStatusText">PRAIA BRAVA • OPERAÇÃO PADOCK.ON</span>
           </div>
           <div style="display:flex; gap:7px; flex-wrap:wrap;">
-            <div class="status-pill" id="heroModePill">OFICIAL • v3.2</div>
+            <div class="status-pill" id="heroModePill">OFICIAL • v3.3</div>
             <div class="status-pill" id="heroDatePill">25/11/2026</div>
           </div>
         </div>
@@ -1170,27 +1273,32 @@
 
       <!-- COL 3: PADOCK.ON -->
       <div class="card card-flex padock-card stage-1" id="padockCard">
-        <div class="card-header" style="margin-bottom:9px;">
-          <div class="card-title">🏎️ Padock.on • Laboratório</div>
+        <div class="padock-header-center">
+          <div class="card-title">🏎️ Padock.on</div>
           <span class="badge cyan" id="padockStageBadge">ESTÁGIO 1/5</span>
         </div>
 
         <div class="padock-art-wrap">
-          <img id="padockArtImg" src="padock-1.jpg" alt="Laboratório Padock.on" />
+          <img id="padockArtImg" src="padock-1.jpg" alt="Padock.on" />
           <div class="padock-art-overlay">
             <div class="padock-stage-title" id="padockStageTitle">1 — Garagem & Protótipo</div>
             <div class="card-sub" style="color:#cbd5e1;" id="padockStageSubtitle">Motor de estoque, vitrine e dashboard de leads</div>
           </div>
         </div>
 
-        <div class="padock-summary-box">
-          <strong style="color:var(--cyan); font-size:0.7rem; text-transform:uppercase; display:block; margin-bottom:3px;">Overview Atual (Telemetria)</strong>
-          <div id="padockSummaryText"></div>
+        <div class="padock-toggle">
+          <button class="padock-toggle-btn active-gargalo" id="btnPadockGargalo" onclick="setPadockView('gargalo')">🎯 Gargalo Crítico</button>
+          <button class="padock-toggle-btn" id="btnPadockTelemetria" onclick="setPadockView('telemetria')">📡 Telemetria</button>
         </div>
 
-        <div class="padock-bottleneck">
+        <div class="padock-bottleneck" id="padockBottleneckBox">
           <strong style="font-size:0.68rem; text-transform:uppercase; display:block; margin-bottom:2px;">🎯 Próximo Gargalo Crítico</strong>
           <div id="padockBottleneckText"></div>
+        </div>
+
+        <div class="padock-summary-box hidden" id="padockSummaryBox">
+          <strong style="color:var(--cyan); font-size:0.7rem; text-transform:uppercase; display:block; margin-bottom:3px;">Overview Atual (Telemetria)</strong>
+          <div id="padockSummaryText"></div>
         </div>
 
         <div class="padock-kpis">
@@ -1200,8 +1308,7 @@
         </div>
 
         <div class="padock-actions">
-          <button class="btn btn-sm" onclick="copyPadockPrompt()">📋 Protocolo TMG-PDK</button>
-          <button class="btn btn-gold btn-sm" onclick="prepPadockSync()">⚡ Colar Código</button>
+          <button class="btn btn-gold" onclick="prepPadockSync()">⚡ Colar Código</button>
         </div>
       </div>
     </section>
@@ -1215,9 +1322,7 @@
           <div class="card-title">⚔ Operação Diária <span class="card-sub" id="dailyDateSubtitle" style="font-weight:500; text-transform:none;">• Ciclo</span></div>
         </div>
         <div class="ops-buff-pills">
-          <button id="alvoradaBtn" class="buff-pill" onclick="toggleAlvorada()">🌅 Buff da Alvorada (&lt;08h: +10% XP)</button>
           <button id="restBtn" class="buff-pill" onclick="toggleTacticalRest()">🛡️ Descanso Tático (2/2 sem)</button>
-          <button class="btn btn-primary btn-sm" id="closeDayBtn" onclick="closeDayManual()">🌙 Encerrar Dia & Processar XP</button>
         </div>
       </div>
 
@@ -1404,6 +1509,7 @@
             <button class="btn btn-sm" onclick="triggerLevelUpFX(getLevelInfo(state.xp).level + 1)">✨ Testar Level Up</button>
             <button class="btn btn-gold btn-sm" onclick="openClassAscension(CLASS_TIERS[0], CLASS_TIERS[1])">👑 Testar Ascensão</button>
             <button class="btn btn-sm" onclick="testRockRiff()">🎸 Testar Riff</button>
+            <button class="btn btn-primary btn-sm" onclick="previewDailySummary()">🌙 Preview Balanço</button>
           </div>
         </div>
 
@@ -1431,7 +1537,7 @@
 
         <div style="padding:12px; border-radius:10px; background:rgba(244,63,94,0.08); border:1px solid rgba(244,63,94,0.3);">
           <strong style="font-size:0.82rem; color:#fda4af; display:block; margin-bottom:6px;">⚠ Zona de Reset</strong>
-          <button class="btn btn-danger btn-sm" onclick="hardReset()">Resetar Projeto Brava v3.2</button>
+          <button class="btn btn-danger btn-sm" onclick="hardReset()">Resetar Projeto Brava v3.3</button>
         </div>
       </div>
     </div>
@@ -1458,6 +1564,21 @@
         <textarea id="newQText" rows="3" placeholder="Type the challenge question in English..."></textarea>
         <button class="btn btn-primary" onclick="saveCustomQuestion()">Salvar no Baralho</button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL BALANÇO DO DIA (VIRADA AUTOMÁTICA 01h00) -->
+  <div class="modal-backdrop" id="dailySummaryModal">
+    <div class="modal">
+      <div class="card-header">
+        <div>
+          <div class="card-title" style="color:var(--cyan);">🌙 Balanço do Dia — <span id="dsDateLabel"></span></div>
+          <div class="card-sub" id="dsSubtitle">Virada automática às 01h00</div>
+        </div>
+        <span class="badge gold" id="dsStreakBadge">Streak: 0d</span>
+      </div>
+      <div id="dsBody"></div>
+      <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="closeDailySummaryModal()">⚡ Iniciar Novo Ciclo</button>
     </div>
   </div>
 
@@ -1704,9 +1825,46 @@
       { name: 'Black Sabbath — Iron Man', file: 'iron_man.mp3', notes: [123.5, 146.8, 146.8, 164.8, 164.8, 196, 185, 196, 185, 146.8, 146.8, 164.8] }
     ];
 
-    let evolutionQueue = [];
+    let modalQueue = [];
+    let activeModalType = null;
     let currentOverlayStage = null;
     let levelUpTimer = null;
+
+    /* ============================================================
+     * FILA ÚNICA DE MODAIS (Balanço -> Level Up/Ascensão -> Skin/Padock)
+     * ============================================================ */
+    const MODAL_PRIORITY = { dailySummary: 1, levelUp: 2, classAscension: 2, skin: 3, padockStage: 3 };
+
+    function enqueueModal(item) {
+      if (item.type === 'dailySummary' && (activeModalType === 'dailySummary' || modalQueue.some(x => x.type === 'dailySummary'))) {
+        return;
+      }
+      modalQueue.push(item);
+      modalQueue.sort((a, b) => (MODAL_PRIORITY[a.type] || 9) - (MODAL_PRIORITY[b.type] || 9));
+      if (!activeModalType) processNextModal();
+    }
+
+    function processNextModal() {
+      if (activeModalType || modalQueue.length === 0) return;
+      const next = modalQueue.shift();
+      activeModalType = next.type;
+
+      if (next.type === 'dailySummary') {
+        openDailySummaryModal(next.data, Boolean(next.isPreview));
+      } else if (next.type === 'levelUp') {
+        triggerLevelUpFX(next.level, () => {
+          activeModalType = null;
+          setTimeout(processNextModal, 220);
+        });
+      } else if (next.type === 'classAscension') {
+        openClassAscension(next.oldCls, next.newCls);
+      } else if (next.type === 'skin') {
+        openEvolutionOverlay(next.stage, Boolean(next.requireClick));
+      } else {
+        activeModalType = null;
+        processNextModal();
+      }
+    }
 
     /* ============================================================
      * CURVA DE XP & PROGRESSÃO DE CLASSES (v3.2)
@@ -1738,7 +1896,7 @@
 
     /* VERIFICA SUBIDA DE NÍVEL / CLASSE APÓS QUALQUER GANHO DE XP */
     function applyXpWithProgression(deltaXp) {
-      if (deltaXp <= 0) return;
+      if (deltaXp <= 0) return { leveledUp: false, ascended: false };
       const beforeLvl = getLevelInfo(state.xp).level;
       const beforeCls = getClassForLevel(beforeLvl);
       state.xp += deltaXp;
@@ -1747,11 +1905,14 @@
 
       if (afterCls.name !== beforeCls.name) {
         addLog('evolution', `👑 ASCENSÃO DE CLASSE! Nível ${afterLvl} — ${beforeCls.name} → ${afterCls.name}.`);
-        setTimeout(() => openClassAscension(beforeCls, afterCls), 300);
+        enqueueModal({ type: 'classAscension', oldCls: beforeCls, newCls: afterCls });
+        return { leveledUp: true, ascended: true, afterLvl, afterCls };
       } else if (afterLvl > beforeLvl) {
         addLog('evolution', `⚡ LEVEL UP! Você alcançou o Nível ${afterLvl} (${afterCls.name}).`);
-        setTimeout(() => triggerLevelUpFX(afterLvl), 200);
+        enqueueModal({ type: 'levelUp', level: afterLvl });
+        return { leveledUp: true, ascended: false, afterLvl, afterCls };
       }
+      return { leveledUp: false, ascended: false, afterLvl, afterCls };
     }
 
     /* ============================================================
@@ -1803,7 +1964,7 @@
       } catch (e) {}
     }
 
-    function triggerLevelUpFX(newLevel) {
+    function triggerLevelUpFX(newLevel, onDone) {
       playLevelUpSound();
       const chip = document.getElementById('hudLevelXpChip');
       if (chip) {
@@ -1814,7 +1975,10 @@
       document.getElementById('levelUpText').textContent = `NÍVEL ${newLevel} ALCANÇADO`;
       banner.classList.add('show');
       clearTimeout(levelUpTimer);
-      levelUpTimer = setTimeout(() => banner.classList.remove('show'), 3200);
+      levelUpTimer = setTimeout(() => {
+        banner.classList.remove('show');
+        if (typeof onDone === 'function') onDone();
+      }, 2800);
     }
 
     function openClassAscension(oldCls, newCls) {
@@ -1831,7 +1995,9 @@
 
     function closeClassAscension() {
       document.getElementById('classAscensionOverlay').classList.remove('open');
+      if (activeModalType === 'classAscension') activeModalType = null;
       renderAll();
+      setTimeout(processNextModal, 220);
     }
 
     /* HELPERS DE DATA (VIRADA AUTOMÁTICA ÀS 01h00) */
@@ -1896,10 +2062,12 @@
     function createDefaultState() {
       const today = getGameDate();
       return {
-        version: '3.2',
+        version: '3.3',
         xp: 0,
         streak: 0,
         muted: false,
+        padockView: 'gargalo',
+        pendingDailySummary: null,
         lastWeekReset: getWeekStart(today),
         tacticalRestLeft: 2,
         rerollRemaining: 1,
@@ -1960,7 +2128,6 @@
           date: today,
           levels: { padock: 0, treino: 0, ingles: 0, conselho: 0 },
           morningAuras: { corrida: false, padock: false, piano: false, caminhada: false },
-          alvorada: false,
           tacticalRestUsedToday: false,
           hybridComboDone: false,
           modifierId: '',
@@ -1983,6 +2150,8 @@
       if (typeof raw.xp === 'number') base.xp = raw.xp;
       if (typeof raw.streak === 'number') base.streak = raw.streak;
       if (typeof raw.muted === 'boolean') base.muted = raw.muted;
+      if (raw.padockView === 'telemetria' || raw.padockView === 'gargalo') base.padockView = raw.padockView;
+      if (raw.pendingDailySummary && typeof raw.pendingDailySummary === 'object') base.pendingDailySummary = raw.pendingDailySummary;
       if (Array.isArray(raw.redeemedCodes)) base.redeemedCodes = raw.redeemedCodes;
       if (raw.attributes) {
         Object.keys(base.attributes).forEach(k => {
@@ -2022,7 +2191,8 @@
         if (raw.weeklyChallenge) base.weeklyChallenge = { ...base.weeklyChallenge, ...raw.weeklyChallenge };
         if (raw.mentorMicroLast) base.mentorMicroLast = { ...base.mentorMicroLast, ...raw.mentorMicroLast };
       }
-      base.version = '3.2';
+      delete base.today.alvorada;
+      base.version = '3.3';
       return base;
     }
 
@@ -2150,15 +2320,10 @@
         const summaryTxt = (parts[4] || '-').trim();
         const bottleneckTxt = (parts[5] || '-').trim();
 
-       if (stageNum >= 1 && stageNum <= 5 && stageNum !== state.padock.stage) {
-          const isAdvance = stageNum > state.padock.stage;
+        if (stageNum >= 1 && stageNum <= 5 && stageNum !== state.padock.stage) {
           state.padock.stage = stageNum;
           revealedPills.push(`<span class="badge emerald">Padock → Estágio ${stageNum}</span>`);
           addLog('evolution', `🏎️ Padock.on avançou para o Estágio ${stageNum}!`);
-          if (isAdvance) {
-            const riff = playRandomRockRiff();
-            revealedPills.push(`<span class="badge gold">🎸 ${riff}</span>`);
-          }
         }
         if (summaryTxt && summaryTxt !== '-') {
           state.padock.summary = summaryTxt;
@@ -2258,16 +2423,22 @@
       const diff = daysBetween(state.today.date, gameToday);
 
       if (diff >= 1) {
-        processDayEnd(true, gameToday, diff);
+        processDayEnd(gameToday, diff);
       } else {
         ensureDayInitialized();
         renderMorningAuras();
       }
 
-      if (state.skins.pendingUnlocks.length > 0 && !currentOverlayStage) {
-        const nextSt = state.skins.pendingUnlocks.shift();
+      if (state.pendingDailySummary) {
+        enqueueModal({ type: 'dailySummary', data: state.pendingDailySummary, isPreview: false });
+      }
+
+      if (state.skins.pendingUnlocks.length > 0) {
+        while (state.skins.pendingUnlocks.length > 0) {
+          const nextSt = state.skins.pendingUnlocks.shift();
+          enqueueModal({ type: 'skin', stage: nextSt, requireClick: true });
+        }
         saveState();
-        openEvolutionOverlay(nextSt, true);
       }
     }
 
@@ -2298,23 +2469,16 @@
       saveState();
     }
 
-    function closeDayManual() {
-      const gameToday = getGameDate();
-      if (state.today.date > gameToday) {
-        return toast('O dia de hoje já foi encerrado! Aguarde a virada às 01h00.');
-      }
-      if (!isCalibrationDay() && state.today.levels.padock < 70) {
-        if (!confirm('Execução Inegociável (Padock.on) está abaixo de 70%. Encerrar agora vai ZERAR seu Streak. Continuar?')) return;
-      }
-      processDayEnd(false, addDays(state.today.date, 1), 1);
-    }
-
-    function processDayEnd(isAuto, newDate, daysElapsed = 1) {
+    function processDayEnd(newDate, daysElapsed = 1) {
       const closingDate = state.today.date;
       const cal = isCalibrationDay(closingDate);
-      let newlyUnlocked = [];
 
       if (!cal) {
+        const snapAttrs = { ...state.attributes };
+        const snapEloPct = state.elo.percent;
+        const snapSkills = { ...state.elo.skills };
+        const snapStreak = state.streak;
+
         const multMap = { 0: 0, 40: 0.55, 70: 1.0, 100: 1.25 };
         const lv = state.today.levels;
         const auras = state.today.morningAuras || {};
@@ -2339,7 +2503,7 @@
         MORNING_AURAS.forEach(a => {
           if (auras[a.id] && lv[a.missionKey] === 100) {
             addAttr(state, a.attr, 0.5);
-            auraBonusList.push(`+0.5 ${a.attrShort}`);
+            auraBonusList.push(`${a.label} (+0.5 ${a.attrShort})`);
           }
         });
 
@@ -2354,9 +2518,10 @@
         // Bloco do Conselho
         const mToday = MENTORS[state.today.councilMentorIdx % MENTORS.length];
         const affMap = { 0: 0, 40: 0.25, 70: 0.5, 100: 1.0 };
-        if (affMap[lv.conselho] > 0) {
-          state.mentors[mToday.id] = Math.min(100, round1((state.mentors[mToday.id] || 10) + affMap[lv.conselho]));
-          state.elo.reservoir += affMap[lv.conselho] * 6;
+        const mentorDelta = affMap[lv.conselho] || 0;
+        if (mentorDelta > 0) {
+          state.mentors[mToday.id] = Math.min(100, round1((state.mentors[mToday.id] || 10) + mentorDelta));
+          state.elo.reservoir += mentorDelta * 6;
         }
 
         if (state.today.tacticalRestUsedToday) {
@@ -2381,38 +2546,65 @@
           addAttr(state, m.attr || 'comercial', 0.45);
         });
 
-        if (state.today.alvorada) {
-          xpGain = Math.round(xpGain * 1.10);
-          addAttr(state, 'disciplina', 0.15);
-        }
-
         // Modificador Automático do Dia
         const mod = DAY_MODIFIERS.find(m => m.id === state.today.modifierId);
+        let modTriggeredName = '';
         let modNote = '';
         let beforeModXp = state.xp;
         if (mod && mod.check(state)) {
           mod.apply(state);
+          modTriggeredName = mod.name;
           modNote = ` • Modificador [${mod.name}]!`;
         }
         const modXpAdded = state.xp - beforeModXp;
-        state.xp = beforeModXp; // reaplica tudo junto com detecção de Level Up / Ascensão
-        applyXpWithProgression(xpGain + modXpAdded);
+        const totalXpGain = xpGain + modXpAdded;
+        state.xp = beforeModXp;
+        applyXpWithProgression(totalXpGain);
 
         if (lv.padock >= 70) state.streak += 1;
         else state.streak = 0;
 
         const bt = checkBreakthrough(false);
-        const auraNote = auraBonusList.length ? ` • Aura(${auraBonusList.join(', ')})` : '';
-        addLog('day', `Dia ${formatDateBR(closingDate)} encerrado (${isAuto ? 'auto 01h' : 'manual'}): +${xpGain + modXpAdded} XP • Streak: ${state.streak}d${auraNote}${modNote}${bt ? ' • ⚡ BREAKTHROUGH!' : ''}`);
 
-        newlyUnlocked = evaluateSecretSkinUnlocks(isAuto);
+        if (daysElapsed >= 2 && newDate > OFFICIAL_START) {
+          state.streak = 0;
+          addLog('system', `⚠️ ${daysElapsed - 1} dia(s) sem registro — Streak resetado para 0.`);
+        }
+
+        // Calcula deltas exatos para o Balanço do Dia
+        const attrDeltas = {};
+        Object.keys(snapAttrs).forEach(k => {
+          attrDeltas[k] = round1(state.attributes[k] - snapAttrs[k]);
+        });
+        const skillDeltas = {};
+        Object.keys(snapSkills).forEach(k => {
+          skillDeltas[k] = round1(state.elo.skills[k] - snapSkills[k]);
+        });
+        const eloDelta = round1(state.elo.percent - snapEloPct);
+
+        state.pendingDailySummary = {
+          date: closingDate,
+          xpGain: totalXpGain,
+          attrDeltas,
+          eloPercent: state.elo.percent,
+          eloDelta,
+          skillDeltas,
+          breakthrough: bt,
+          mentorName: mToday.name,
+          mentorDelta,
+          streakBefore: snapStreak,
+          streakAfter: state.streak,
+          daysAbsent: Math.max(0, daysElapsed - 1),
+          auraBonuses: auraBonusList,
+          modName: modTriggeredName
+        };
+
+        const auraNote = auraBonusList.length ? ` • Aura(${auraBonusList.length})` : '';
+        addLog('day', `Dia ${formatDateBR(closingDate)} encerrado (auto 01h): +${totalXpGain} XP • Streak: ${state.streak}d${auraNote}${modNote}${bt ? ' • ⚡ BREAKTHROUGH!' : ''}`);
+
+        evaluateSecretSkinUnlocks(true);
       } else {
         addLog('system', `Dia 0 (${formatDateBR(closingDate)}) encerrado sem alteração de pontos. Largada oficial armada!`);
-      }
-
-      if (daysElapsed >= 2 && newDate > OFFICIAL_START) {
-        state.streak = 0;
-        addLog('system', `⚠️ ${daysElapsed - 1} dia(s) sem registro — Streak resetado para 0.`);
       }
 
       if (state.weeklyChallenge.status === 'active') {
@@ -2438,7 +2630,6 @@
         date: newDate,
         levels: { padock: 0, treino: 0, ingles: 0, conselho: 0 },
         morningAuras: { corrida: false, padock: false, piano: false, caminhada: false },
-        alvorada: false,
         tacticalRestUsedToday: false,
         hybridComboDone: false,
         modifierId: DAY_MODIFIERS[Math.floor(Math.random() * DAY_MODIFIERS.length)].id,
@@ -2453,13 +2644,127 @@
       ensureDayInitialized();
       saveState();
       renderAll();
+    }
 
-      if (!isAuto && newlyUnlocked.length > 0) {
-        evolutionQueue.push(...newlyUnlocked);
-        openEvolutionOverlay(evolutionQueue.shift(), false);
-      } else if (!isAuto) {
-        toast(cal ? 'Dia 0 finalizado — pronto para a largada oficial!' : '🌙 Dia encerrado e salvo!');
+    /* ============================================================
+     * POP-UP DE BALANÇO DO DIA (PERSISTIDO EM localStorage)
+     * ============================================================ */
+    let currentSummaryIsPreview = false;
+
+    function openDailySummaryModal(data, isPreview = false) {
+      currentSummaryIsPreview = isPreview;
+      document.getElementById('dsDateLabel').textContent = formatDateBR(data.date);
+      document.getElementById('dsSubtitle').textContent = isPreview
+        ? 'Pré-visualização segura (não altera seu progresso real)'
+        : 'Virada automática das 01h00 • Resumo do ciclo encerrado';
+
+      const sb = document.getElementById('dsStreakBadge');
+      sb.textContent = `Streak: ${data.streakAfter}d`;
+      sb.className = data.streakAfter > 0 ? 'badge emerald' : 'badge rose';
+
+      const attrOrder = [
+        ['engenharia', 'Engenharia'],
+        ['comercial', 'Comercial'],
+        ['intelecto', 'Intelecto'],
+        ['disciplina', 'Disciplina'],
+        ['fisico', 'Físico']
+      ];
+      const attrPills = attrOrder
+        .filter(([k]) => (data.attrDeltas[k] || 0) > 0)
+        .map(([k, lbl]) => `<span class="badge cyan">+${Number(data.attrDeltas[k]).toFixed(2).replace(/\.?0+$/, '')} ${lbl}</span>`);
+
+      const skillOrder = [
+        ['listening', 'Listening'],
+        ['speaking', 'Speaking'],
+        ['reading', 'Reading'],
+        ['writing', 'Writing']
+      ];
+      const skillPills = skillOrder
+        .filter(([k]) => (data.skillDeltas[k] || 0) > 0)
+        .map(([k, lbl]) => `<span class="badge purple">+${Number(data.skillDeltas[k]).toFixed(1)}% ${lbl}</span>`);
+
+      const streakMsg = data.streakAfter > data.streakBefore
+        ? `🔥 Streak avançou (${data.streakBefore}d → ${data.streakAfter}d)`
+        : data.daysAbsent > 0
+          ? `⚠️ ${data.daysAbsent} dia(s) ausente — Streak reiniciado`
+          : data.streakAfter === 0
+            ? 'Padock.on abaixo de 70% — Streak zerado'
+            : `Streak mantido em ${data.streakAfter}d`;
+
+      document.getElementById('dsBody').innerHTML = `
+        <div class="summary-grid">
+          <div class="summary-box">
+            <div class="s-lbl">XP Total Ganho</div>
+            <div class="s-val" style="color:var(--gold);">+${data.xpGain} XP</div>
+          </div>
+          <div class="summary-box">
+            <div class="s-lbl">Elo Global</div>
+            <div class="s-val" style="color:var(--cyan);">${Number(data.eloPercent).toFixed(1)}% ${data.eloDelta > 0 ? `(+${data.eloDelta.toFixed(1)}%)` : ''}</div>
+          </div>
+        </div>
+
+        <div class="summary-section">
+          <div class="summary-section-title">⬟ Atributos Evoluídos</div>
+          <div class="summary-pills">${attrPills.length ? attrPills.join('') : '<span class="card-sub">Nenhum ganho de atributo registrado neste ciclo.</span>'}</div>
+        </div>
+
+        <div class="summary-section">
+          <div class="summary-section-title">🌐 Elo Global & 4 Habilidades</div>
+          <div class="summary-pills">
+            ${data.breakthrough ? '<span class="badge gold">⚡ BREAKTHROUGH!</span>' : ''}
+            ${skillPills.length ? skillPills.join('') : '<span class="card-sub">Reservatório oculto atualizado sem variação direta nas skills.</span>'}
+          </div>
+        </div>
+
+        <div class="summary-section">
+          <div class="summary-section-title">🏛 Conselho & Streak Padock.on</div>
+          <div class="summary-pills" style="margin-bottom:6px;">
+            <span class="badge purple">${escapeHtml(data.mentorName)}: ${data.mentorDelta > 0 ? `+${data.mentorDelta}h` : '+0h'}</span>
+            ${data.modName ? `<span class="badge emerald">Modificador: ${escapeHtml(data.modName)} ✓</span>` : ''}
+            ${(data.auraBonuses || []).map(a => `<span class="badge gold">☀ ${escapeHtml(a)}</span>`).join('')}
+          </div>
+          <div class="card-sub">${streakMsg}</div>
+        </div>
+      `;
+
+      document.getElementById('dailySummaryModal').classList.add('open');
+    }
+
+    function closeDailySummaryModal() {
+      document.getElementById('dailySummaryModal').classList.remove('open');
+      if (!currentSummaryIsPreview) {
+        state.pendingDailySummary = null;
+        saveState();
       }
+      currentSummaryIsPreview = false;
+      if (activeModalType === 'dailySummary') activeModalType = null;
+      renderAll();
+      setTimeout(processNextModal, 220);
+    }
+
+    function previewDailySummary() {
+      closeModal('settingsModal');
+      const mToday = MENTORS[state.today.councilMentorIdx % MENTORS.length];
+      enqueueModal({
+        type: 'dailySummary',
+        isPreview: true,
+        data: {
+          date: state.today.date,
+          xpGain: 195,
+          attrDeltas: { engenharia: 0.95, comercial: 0.2, intelecto: 0.45, disciplina: 0.25, fisico: 0.35 },
+          eloPercent: state.elo.percent,
+          eloDelta: 0,
+          skillDeltas: { listening: 0.2, speaking: 0.2, reading: 0, writing: 0.2 },
+          breakthrough: false,
+          mentorName: mToday.name,
+          mentorDelta: 0.5,
+          streakBefore: state.streak,
+          streakAfter: state.streak + 1,
+          daysAbsent: 0,
+          auraBonuses: ['⚡ Sprint Padock (+0.5 ENG)'],
+          modName: 'Full Clear Operacional'
+        }
+      });
     }
 
     function drawMicroMissionIdx(mentorId) {
@@ -2571,10 +2876,9 @@
     function dismissEvolutionOverlay() {
       document.getElementById('evoOverlay').classList.remove('open');
       currentOverlayStage = null;
+      if (activeModalType === 'skin') activeModalType = null;
       renderAll();
-      if (evolutionQueue.length > 0) {
-        setTimeout(() => openEvolutionOverlay(evolutionQueue.shift(), false), 250);
-      }
+      setTimeout(processNextModal, 250);
     }
 
     /* INTERAÇÕES DA OPERAÇÃO DIÁRIA E AURAS MATINAIS */
@@ -2589,13 +2893,6 @@
     function setTaskLevel(key, val) {
       if (state.today.date > getGameDate()) return toast('Dia já encerrado. Aguarde as 01h00.');
       state.today.levels[key] = val;
-      saveState();
-      renderFaixa3();
-    }
-
-    function toggleAlvorada() {
-      if (state.today.date > getGameDate()) return;
-      state.today.alvorada = !state.today.alvorada;
       saveState();
       renderFaixa3();
     }
@@ -2934,7 +3231,7 @@
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `projeto-brava-v3.2-${state.today.date}.json`;
+      a.download = `projeto-brava-v3.3-${state.today.date}.json`;
       a.click();
       toast('⬇ Backup JSON exportado!');
     }
@@ -2957,7 +3254,7 @@
     }
 
     function hardReset() {
-      if (!confirm('Zerar todo o Projeto Brava para o padrão v3.2?')) return;
+      if (!confirm('Zerar todo o Projeto Brava para o padrão v3.3?')) return;
       state = createDefaultState();
       ensureDayInitialized();
       saveState();
@@ -3054,7 +3351,7 @@
       }
 
       const modePill = document.getElementById('heroModePill');
-      modePill.textContent = isCalibrationDay() ? 'DIA 0 — CALIBRAÇÃO' : 'OFICIAL • v3.2';
+      modePill.textContent = isCalibrationDay() ? 'DIA 0 — CALIBRAÇÃO' : 'OFICIAL • v3.3';
       modePill.className = isCalibrationDay() ? 'status-pill cal' : 'status-pill';
 
       const eloRank = getEloRank(state.elo.percent);
@@ -3186,6 +3483,12 @@
       document.getElementById('fossilList').innerHTML = state.elo.fossils.map(f => `<li>${escapeHtml(f)}</li>`).join('');
     }
 
+    function setPadockView(mode) {
+      state.padockView = mode === 'telemetria' ? 'telemetria' : 'gargalo';
+      saveState();
+      renderPadockCard();
+    }
+
     function renderPadockCard() {
       const stg = PADOCK_STAGES[(state.padock.stage || 1) - 1] || PADOCK_STAGES[0];
       const card = document.getElementById('padockCard');
@@ -3198,6 +3501,13 @@
       document.getElementById('padockStageSubtitle').textContent = stg.sub;
       document.getElementById('padockSummaryText').textContent = state.padock.summary;
       document.getElementById('padockBottleneckText').textContent = state.padock.bottleneck;
+
+      const view = state.padockView === 'telemetria' ? 'telemetria' : 'gargalo';
+      document.getElementById('padockBottleneckBox').classList.toggle('hidden', view !== 'gargalo');
+      document.getElementById('padockSummaryBox').classList.toggle('hidden', view !== 'telemetria');
+      document.getElementById('btnPadockGargalo').className = 'padock-toggle-btn' + (view === 'gargalo' ? ' active-gargalo' : '');
+      document.getElementById('btnPadockTelemetria').className = 'padock-toggle-btn' + (view === 'telemetria' ? ' active-telemetria' : '');
+
       document.getElementById('kpiClients').textContent = state.metrics.clients || 0;
       document.getElementById('kpiMrr').textContent = state.metrics.mrr || 0;
       document.getElementById('kpiVisits').textContent = state.metrics.visits || 0;
@@ -3232,18 +3542,9 @@
 
     function renderFaixa3() {
       const closedToday = state.today.date > getGameDate();
-      const card = document.getElementById('faixa3Ops');
-      card.classList.toggle('alvorada-active', state.today.alvorada);
-
       renderMorningAuras();
 
-      document.getElementById('dailyDateSubtitle').textContent = `• Ciclo de ${formatDateBR(state.today.date)}${closedToday ? ' (aguardando 01h)' : ''}`;
-      const closeBtn = document.getElementById('closeDayBtn');
-      closeBtn.disabled = closedToday;
-      closeBtn.textContent = closedToday ? '✓ Dia Encerrado' : '🌙 Encerrar Dia & Processar XP';
-
-      const alv = document.getElementById('alvoradaBtn');
-      alv.className = 'buff-pill' + (state.today.alvorada ? ' on-gold' : '');
+      document.getElementById('dailyDateSubtitle').textContent = `• Ciclo de ${formatDateBR(state.today.date)} • Virada automática às 01h00`;
       const rst = document.getElementById('restBtn');
       rst.className = 'buff-pill' + (state.today.tacticalRestUsedToday ? ' on-emerald' : '');
       rst.textContent = `🛡️ Descanso Tático (${state.tacticalRestLeft}/2 sem)`;
@@ -3271,25 +3572,25 @@
       const fixedTiles = [
         {
           key: 'padock',
-          title: 'Execução Inegociável (Padock.on)',
+          title: '🏎️ Execução Inegociável (Padock.on)',
           badge: lv.padock >= 70 ? '<span class="badge emerald">STREAK OK</span>' : '<span class="badge rose">STREAK 70%+</span>',
           extraClass: `streak-core ${lv.padock >= 70 ? 'streak-safe' : ''}`
         },
         {
           key: 'treino',
-          title: 'Treino Físico (Musc. / Corrida / Tênis)',
+          title: '🏋️ Treino Físico (Musc. / Corrida / Tênis)',
           badge: state.today.tacticalRestUsedToday ? '<span class="badge emerald">🛡️ PROTEGIDO</span>' : '<span class="badge cyan">FÍSICO</span>',
           extraClass: state.today.tacticalRestUsedToday ? 'tactical-shield-active' : ''
         },
         {
           key: 'ingles',
-          title: 'Elo Global (Inglês)',
+          title: '🌐 Elo Global (Inglês)',
           badge: '<span class="badge cyan">ELO GLOBAL</span>',
           extraClass: ''
         },
         {
           key: 'conselho',
-          title: `Bloco do Conselho — ${mToday.name}`,
+          title: `<span class="tile-title-row"><span id="opsCouncilAvatarWrap"><img id="opsCouncilAvatar" class="tile-mentor-avatar" alt="${mToday.name}" /></span><span>Bloco do Conselho — ${mToday.name}</span></span>`,
           badge: '<span class="badge purple">AFINIDADE</span>',
           micro: microText,
           extraClass: ''
@@ -3384,6 +3685,13 @@
       }
 
       document.getElementById('opsGrid3x2').innerHTML = html;
+      const councilAv = document.getElementById('opsCouncilAvatar');
+      if (councilAv) {
+        loadImageChain(councilAv, mentorImgUrls(mToday.avatarBase), () => {
+          const wrap = document.getElementById('opsCouncilAvatarWrap');
+          if (wrap) wrap.innerHTML = `<span class="tile-mentor-fallback">${mToday.initials}</span>`;
+        });
+      }
     }
 
     function renderCouncil() {
