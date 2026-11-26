@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PROJETO BRAVA v3.3 — HUD da Soberania</title>
+  <title>PROJETO BRAVA v3.4 — HUD da Soberania</title>
   <style>
     :root {
       --bg-0: #060911;
@@ -800,6 +800,56 @@
     .seg-btn.active-70 { background: rgba(34, 211, 238, 0.2); color: var(--cyan); border-color: var(--cyan); }
     .seg-btn.active-100 { background: rgba(168, 85, 247, 0.26); color: #e9d5ff; border-color: var(--purple); box-shadow: 0 0 10px rgba(168, 85, 247, 0.28); }
 
+    /* MISSÃO FINALIZADA (BLOQUEADA ATÉ 01h00 — SEM LUZES NAS BORDAS + EFEITO DE OCULTAÇÃO) */
+    .mission-tile.mission-finalized {
+      background: rgba(6, 9, 17, 0.36) !important;
+      border-color: rgba(148, 163, 184, 0.12) !important;
+      box-shadow: none !important;
+      animation: none !important;
+      opacity: 0.46;
+      filter: saturate(0.32);
+      transition: opacity 0.25s ease, filter 0.25s ease;
+    }
+    .mission-tile.mission-finalized::after { display: none !important; }
+    .mission-tile.mission-finalized .tile-title { color: var(--text-2); }
+    .mission-finalized-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: auto;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.52);
+      border: 1px dashed rgba(148, 163, 184, 0.2);
+      font-size: 0.72rem;
+      color: var(--text-2);
+    }
+    .mission-controls-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: auto;
+    }
+    .mission-finalize-btn {
+      width: 100%;
+      padding: 6px 10px;
+      font-size: 0.72rem;
+      border-radius: 7px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.38);
+      color: #6ee7b7;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .mission-finalize-btn:hover:not(:disabled) {
+      background: rgba(16, 185, 129, 0.24);
+      border-color: var(--emerald);
+      color: #ecfdf5;
+    }
+    .mission-finalize-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
     /* ============================================================
      * FAIXA 4: PORTAL ÚNICO DO TECNOMAGO (SEM API) | CONSELHO 2x2
      * ============================================================ */
@@ -919,8 +969,6 @@
     .mentor-meta h3 { font-size: 0.86rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mentor-meta .specialty { font-size: 0.68rem; color: var(--text-2); margin-bottom: 4px; }
     .mentor-hours-row { display: flex; justify-content: space-between; font-size: 0.71rem; color: var(--text-1); font-weight: 600; }
-    .mentor-btn-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-    .mentor-btn-row .btn-xs { padding: 4px 2px; font-size: 0.66rem; }
 
     /* ============================================================
      * FAIXA 5: AGENDA POR DATA | TEMPORADAS & LEITURA
@@ -1090,7 +1138,7 @@
     <!-- TOP BAR -->
     <header class="topbar">
       <div class="brand">
-        <span class="brand-badge">v3.3 RPG HUD</span>
+        <span class="brand-badge">v3.4 RPG HUD</span>
         <h1>Projeto Brava</h1>
       </div>
       <div class="top-actions">
@@ -1114,7 +1162,7 @@
             <span>●</span> <span id="heroStatusText">PRAIA BRAVA • OPERAÇÃO PADOCK.ON</span>
           </div>
           <div style="display:flex; gap:7px; flex-wrap:wrap;">
-            <div class="status-pill" id="heroModePill">OFICIAL • v3.3</div>
+            <div class="status-pill" id="heroModePill">OFICIAL • v3.4</div>
             <div class="status-pill" id="heroDatePill">25/11/2026</div>
           </div>
         </div>
@@ -1389,7 +1437,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">🏛 Conselho Interno (10h → 100h)</div>
-            <div class="card-sub">Filtro do Sábio: conteúdo eleva Afinidade + reservatório oculto do Elo Global.</div>
+            <div class="card-sub">Afinidade evolui via Portal do Tecnomago (TMG-BRV), Bloco do Conselho e Chamadas Semanais.</div>
           </div>
           <span class="badge purple" id="weeklyMentorStatusBadge">Chamada Armada</span>
         </div>
@@ -1537,7 +1585,7 @@
 
         <div style="padding:12px; border-radius:10px; background:rgba(244,63,94,0.08); border:1px solid rgba(244,63,94,0.3);">
           <strong style="font-size:0.82rem; color:#fda4af; display:block; margin-bottom:6px;">⚠ Zona de Reset</strong>
-          <button class="btn btn-danger btn-sm" onclick="hardReset()">Resetar Projeto Brava v3.3</button>
+          <button class="btn btn-danger btn-sm" onclick="hardReset()">Resetar Projeto Brava v3.4</button>
         </div>
       </div>
     </div>
@@ -2062,7 +2110,7 @@
     function createDefaultState() {
       const today = getGameDate();
       return {
-        version: '3.3',
+        version: '3.4',
         xp: 0,
         streak: 0,
         muted: false,
@@ -2127,6 +2175,7 @@
         today: {
           date: today,
           levels: { padock: 0, treino: 0, ingles: 0, conselho: 0 },
+          lockedMissions: { padock: false, treino: false, ingles: false, conselho: false },
           morningAuras: { corrida: false, padock: false, piano: false, caminhada: false },
           tacticalRestUsedToday: false,
           hybridComboDone: false,
@@ -2136,7 +2185,8 @@
           councilMicroIdx: 0,
           lightningId: '',
           lastLightningId: '',
-          lightningDone: false
+          lightningDone: false,
+          lightningLocked: false
         },
         logs: [
           { date: today, type: 'system', text: 'Projeto Brava v3.2 ativo: Portal Offline do Tecnomago, Auras Matinais, Cards Limpos e Árvore Real de Classes.' }
@@ -2183,7 +2233,9 @@
         base.today = {
           ...base.today,
           ...raw.today,
-          morningAuras: { ...base.today.morningAuras, ...(raw.today.morningAuras || {}) }
+          lockedMissions: { ...base.today.lockedMissions, ...(raw.today.lockedMissions || {}) },
+          morningAuras: { ...base.today.morningAuras, ...(raw.today.morningAuras || {}) },
+          lightningLocked: Boolean(raw.today.lightningLocked)
         };
         if (raw.lastWeekReset) base.lastWeekReset = raw.lastWeekReset;
         if (typeof raw.tacticalRestLeft === 'number') base.tacticalRestLeft = raw.tacticalRestLeft;
@@ -2192,7 +2244,7 @@
         if (raw.mentorMicroLast) base.mentorMicroLast = { ...base.mentorMicroLast, ...raw.mentorMicroLast };
       }
       delete base.today.alvorada;
-      base.version = '3.3';
+      base.version = '3.4';
       return base;
     }
 
@@ -2290,7 +2342,10 @@
       }
 
       const xpGain = Math.min(60, Math.max(0, Math.round(Number(parts[1]) || 0)));
-      const attrNums = (parts[2] || '0.0.0.0.0').split('.').map(v => Math.min(3, Math.max(0, round1(Number(v) || 0))));
+      const rawAttrStr = (parts[2] || '0.0.0.0.0').trim();
+      const attrNums = rawAttrStr.includes('-')
+        ? rawAttrStr.split('-').map(v => Math.min(1.5, Math.max(0, round1(Number(v) || 0))))
+        : rawAttrStr.split('.').map(v => Math.min(1.5, Math.max(0, round1((Number(v) || 0) / 10))));
       const attrKeys = ['engenharia', 'comercial', 'intelecto', 'disciplina', 'fisico'];
 
       const revealedPills = [];
@@ -2367,9 +2422,9 @@
             revealedPills.push('<span class="badge gold">Conselho 🏆</span>');
           } else if (f.startsWith('M:')) {
             const [, mId, hrs] = f.split(':');
-            const h = Math.min(2, Math.max(0, round1(Number(hrs) || 0)));
-            if (state.mentors[mId] !== undefined && h > 0) {
-              state.mentors[mId] = Math.min(100, round1(state.mentors[mId] + h));
+            const h = Math.min(2, Math.max(0, Math.round((Number(hrs) || 0) * 100) / 100));
+            if (!isCalibrationDay() && state.mentors[mId] !== undefined && h > 0) {
+              state.mentors[mId] = Math.min(100, Math.round((state.mentors[mId] + h) * 100) / 100);
               revealedPills.push(`<span class="badge purple">+${h}h ${getMentor(mId).name}</span>`);
             }
           }
@@ -2446,6 +2501,12 @@
       const d = state.today.date;
       if (!state.today.morningAuras) {
         state.today.morningAuras = { corrida: false, padock: false, piano: false, caminhada: false };
+      }
+      if (!state.today.lockedMissions) {
+        state.today.lockedMissions = { padock: false, treino: false, ingles: false, conselho: false };
+      }
+      if (typeof state.today.lightningLocked !== 'boolean') {
+        state.today.lightningLocked = false;
       }
       if (!state.today.modifierId) {
         state.today.modifierId = DAY_MODIFIERS[Math.floor(Math.random() * DAY_MODIFIERS.length)].id;
@@ -2629,6 +2690,7 @@
       state.today = {
         date: newDate,
         levels: { padock: 0, treino: 0, ingles: 0, conselho: 0 },
+        lockedMissions: { padock: false, treino: false, ingles: false, conselho: false },
         morningAuras: { corrida: false, padock: false, piano: false, caminhada: false },
         tacticalRestUsedToday: false,
         hybridComboDone: false,
@@ -2638,7 +2700,8 @@
         councilMicroIdx: nextMicroIdx,
         lightningId: drawLightningMission(newDate, prevLightning),
         lastLightningId: prevLightning,
-        lightningDone: false
+        lightningDone: false,
+        lightningLocked: false
       };
 
       ensureDayInitialized();
@@ -2881,10 +2944,14 @@
       setTimeout(processNextModal, 250);
     }
 
-    /* INTERAÇÕES DA OPERAÇÃO DIÁRIA E AURAS MATINAIS */
+    /* INTERAÇÕES DA OPERAÇÃO DIÁRIA, FINALIZAÇÃO E AURAS MATINAIS */
     function toggleMorningAura(auraId) {
       if (state.today.date > getGameDate()) return toast('Dia já encerrado.');
       if (!isMorningAuraWindowOpen()) return toast('Janela de Aura Matinal encerrada às 10h00.');
+      const aura = MORNING_AURAS.find(a => a.id === auraId);
+      if (aura && state.today.lockedMissions && state.today.lockedMissions[aura.missionKey]) {
+        return toast('A missão ligada a esta Aura já foi finalizada hoje.');
+      }
       state.today.morningAuras[auraId] = !state.today.morningAuras[auraId];
       saveState();
       renderFaixa3();
@@ -2892,13 +2959,33 @@
 
     function setTaskLevel(key, val) {
       if (state.today.date > getGameDate()) return toast('Dia já encerrado. Aguarde as 01h00.');
+      if (state.today.lockedMissions && state.today.lockedMissions[key]) {
+        return toast('Missão já finalizada hoje. Aguarde a virada às 01h00.');
+      }
       state.today.levels[key] = val;
       saveState();
       renderFaixa3();
     }
 
+    function finalizeMission(key) {
+      if (state.today.date > getGameDate()) return toast('Dia já encerrado. Aguarde as 01h00.');
+      if (!state.today.lockedMissions) state.today.lockedMissions = { padock: false, treino: false, ingles: false, conselho: false };
+      if (state.today.lockedMissions[key]) return;
+      const pct = state.today.levels[key] ?? 0;
+      if (pct === 0) {
+        if (!confirm('Finalizar esta missão com 0% hoje? Ela ficará bloqueada pelo resto do dia (até 01h00).')) return;
+      }
+      state.today.lockedMissions[key] = true;
+      saveState();
+      renderFaixa3();
+      toast(`🔒 Missão finalizada com ${pct}% (bloqueada até 01h00).`);
+    }
+
     function toggleTacticalRest() {
       if (state.today.date > getGameDate()) return;
+      if (state.today.lockedMissions && state.today.lockedMissions.treino) {
+        return toast('A missão Treino Físico já foi finalizada hoje.');
+      }
       if (!state.today.tacticalRestUsedToday) {
         if (state.tacticalRestLeft <= 0) return toast('Sem Descanso Tático restante nesta semana.');
         state.today.tacticalRestUsedToday = true;
@@ -2913,13 +3000,24 @@
 
     function toggleLightningTask() {
       if (state.today.date > getGameDate()) return;
+      if (state.today.lightningLocked) return toast('Missão Relâmpago já finalizada hoje.');
       state.today.lightningDone = !state.today.lightningDone;
       saveState();
       renderFaixa3();
     }
 
+    function finalizeLightningMission() {
+      if (state.today.date > getGameDate() || state.today.lightningLocked) return;
+      state.today.lightningDone = true;
+      state.today.lightningLocked = true;
+      saveState();
+      renderFaixa3();
+      toast('🔒 Missão Relâmpago finalizada até 01h00.');
+    }
+
     function rerollLightningMission() {
       if (state.today.date > getGameDate()) return;
+      if (state.today.lightningLocked) return toast('Missão Relâmpago já finalizada hoje.');
       if (state.rerollRemaining <= 0) return toast('Reroll já usado esta semana.');
       state.today.lightningId = drawLightningMission(state.today.date, state.today.lightningId);
       state.today.lightningDone = false;
@@ -2946,22 +3044,6 @@
     }
 
     /* CONSELHO & CHAMADA SEMANAL */
-    function addMentorHours(mentorId, delta) {
-      const prev = state.mentors[mentorId] || 0;
-      const next = Math.max(0, Math.min(100, round1(prev + delta)));
-      const diff = round1(next - prev);
-      if (diff === 0) return;
-      state.mentors[mentorId] = next;
-      if (diff > 0 && !isCalibrationDay()) {
-        state.elo.reservoir += diff * 7;
-        state.elo.skills.listening = Math.min(100, round1(state.elo.skills.listening + diff * 0.25));
-        checkBreakthrough(true);
-        toast(`+${diff}h em ${getMentor(mentorId).name} (+Elo Global)`);
-      }
-      saveState();
-      renderAll();
-    }
-
     function copyChallengeForEval() {
       const mc = state.weeklyChallenge;
       const mentor = getMentor(mc.mentorId);
@@ -3027,7 +3109,7 @@
 
     /* PROTOCOLO TMG-PDK PARA O CHAT DA PADOCK.ON */
     function copyPadockPrompt() {
-      const prompt = `[PROTOCOLO DE INTEGRAÇÃO — PROJETO BRAVA / TECNOMAGO v3.2]\n\nA partir de agora, você também atua como emissor de telemetria para o meu sistema pessoal de gamificação (Projeto Brava).\n\nREGRAS DE ATIVAÇÃO:\n1. NÃO gere o código em toda mensagem. Gere APENAS quando eu pedir explicitamente (ex: "gera a telemetria", "fecha a sessão", "manda o código pro Tecnomago").\n2. REGRA ANTI-SPOILER: Quando gerar o código, NÃO explique, NÃO comente e NÃO revele quantos pontos de XP ou atributos eu ganhei no texto da resposta. Entregue apenas o código dentro de um bloco de texto simples.\n3. REGRA ANTI-FARM (RIGOROSA): Avalie o impacto real do que foi executado na sessão. Tarefas triviais ou só planejamento sem execução = 0 a 15 XP. Avanço técnico sólido (WordPress/Elementor/Crocoblock/JetEngine) ou prospecção ativa = 20 a 45 XP. Entregas críticas, fechamento de cliente ou marco importante = 45 a 60 XP.\n   - Teto máximo por sessão: 60 XP.\n   - Atributos (0 a 3 pontos cada por sessão): foque principalmente em Engenharia, Comercial e Disciplina.\n\nFORMATO OBRIGATÓRIO DA SAÍDA (1 única linha, sem quebras):\nTMG-PDK::<ID>|<XP>|<ENG>.<COM>.<INT>.<DIS>.<FIS>|P<ESTAGIO>|<RESUMO>|<GARGALO>\n\nEXEMPLO:\nTMG-PDK::2511A|35|2.1.0.1.0|P0|Filtros JetSmartFilters configurados no catalogo|Validar velocidade mobile\n\nConfirme apenas com "Protocolo TMG-PDK ativo." e aguarde meu próximo comando.`;
+      const prompt = `[PROTOCOLO DE INTEGRAÇÃO — PROJETO BRAVA / TECNOMAGO v3.2]\n\nA partir de agora, você também atua como emissor de telemetria para o meu sistema pessoal de gamificação (Projeto Brava).\n\nREGRAS DE ATIVAÇÃO:\n1. NÃO gere o código em toda mensagem. Gere APENAS quando eu pedir explicitamente (ex: "gera a telemetria", "fecha a sessão", "manda o código pro Tecnomago").\n2. REGRA ANTI-SPOILER: Quando gerar o código, NÃO explique, NÃO comente e NÃO revele quantos pontos de XP ou atributos eu ganhei no texto da resposta. Entregue apenas o código dentro de um bloco de texto simples.\n3. REGRA ANTI-FARM (RIGOROSA): Avalie o impacto real do que foi executado na sessão. Tarefas triviais ou só planejamento sem execução = 0 a 15 XP. Avanço técnico sólido (WordPress/Elementor/Crocoblock/JetEngine) ou prospecção ativa = 20 a 45 XP. Entregas críticas, fechamento de cliente ou marco importante = 45 a 60 XP.\n   - Teto máximo por sessão: 60 XP.\n   - Atributos em décimos (0 a 15 = 0.0 a 1.5 pontos cada; ex: 6 = +0.6): foque principalmente em Engenharia, Comercial e Disciplina.\n\nFORMATO OBRIGATÓRIO DA SAÍDA (1 única linha, sem quebras):\nTMG-PDK::<ID>|<XP>|<ENG>.<COM>.<INT>.<DIS>.<FIS>|P<ESTAGIO>|<RESUMO>|<GARGALO>\n\nEXEMPLO:\nTMG-PDK::2511A|35|6.2.0.3.0|P0|Filtros JetSmartFilters configurados no catalogo|Validar velocidade mobile\n\nConfirme apenas com "Protocolo TMG-PDK ativo." e aguarde meu próximo comando.`;
       navigator.clipboard.writeText(prompt);
       toast('📋 Protocolo TMG-PDK copiado!');
     }
@@ -3231,7 +3313,7 @@
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `projeto-brava-v3.3-${state.today.date}.json`;
+      a.download = `projeto-brava-v3.4-${state.today.date}.json`;
       a.click();
       toast('⬇ Backup JSON exportado!');
     }
@@ -3246,7 +3328,7 @@
           saveState();
           checkAutoRollover();
           renderAll();
-          toast('⬆ Backup restaurado na v3.2!');
+          toast('⬆ Backup restaurado na v3.4!');
         } catch { toast('Arquivo JSON inválido.'); }
       };
       reader.readAsText(file);
@@ -3254,7 +3336,7 @@
     }
 
     function hardReset() {
-      if (!confirm('Zerar todo o Projeto Brava para o padrão v3.3?')) return;
+      if (!confirm('Zerar todo o Projeto Brava para o padrão v3.4?')) return;
       state = createDefaultState();
       ensureDayInitialized();
       saveState();
@@ -3351,7 +3433,7 @@
       }
 
       const modePill = document.getElementById('heroModePill');
-      modePill.textContent = isCalibrationDay() ? 'DIA 0 — CALIBRAÇÃO' : 'OFICIAL • v3.3';
+      modePill.textContent = isCalibrationDay() ? 'DIA 0 — CALIBRAÇÃO' : 'OFICIAL • v3.4';
       modePill.className = isCalibrationDay() ? 'status-pill cal' : 'status-pill';
 
       const eloRank = getEloRank(state.elo.percent);
@@ -3567,6 +3649,7 @@
       const mToday = MENTORS[state.today.councilMentorIdx % MENTORS.length];
       const microText = MENTOR_MICRO_MISSIONS[mToday.id][state.today.councilMicroIdx % 3];
       const lv = state.today.levels;
+      const locked = state.today.lockedMissions || {};
       const auras = state.today.morningAuras || {};
 
       const fixedTiles = [
@@ -3598,10 +3681,26 @@
       ];
 
       let html = fixedTiles.map(t => {
+        const isLocked = Boolean(locked[t.key]);
         const isCrit = mod.id === 'critical_window' && state.today.criticalKey === t.key;
         const activeAura = MORNING_AURAS.find(a => a.missionKey === t.key && auras[a.id]);
         const pct = lv[t.key] ?? 0;
         const activeTierText = MISSION_TIERS[t.key][pct] || '';
+
+        if (isLocked) {
+          return `
+            <div class="mission-tile mission-finalized">
+              <div class="tile-head">
+                <div class="tile-title">${t.title}</div>
+                <span class="badge">🔒 ${pct}%</span>
+              </div>
+              <div class="mission-finalized-bar">
+                <span>✓ Finalizada (${pct}%)${activeAura ? ' • Aura' : ''}</span>
+                <span>Libera às 01h00</span>
+              </div>
+            </div>
+          `;
+        }
 
         return `
           <div class="mission-tile ${t.extraClass} ${isCrit ? 'critical' : ''} ${activeAura ? activeAura.tileCss : ''}">
@@ -3614,8 +3713,11 @@
               <div class="tile-desc-clean"><strong>${pct}%:</strong> ${activeTierText}</div>
               ${t.micro ? `<div class="tile-micro" style="margin-top:6px;">🎯 ${t.micro}</div>` : ''}
             </div>
-            <div class="seg-bar">
-              ${[0, 40, 70, 100].map(v => `<button class="seg-btn ${pct === v ? 'active-' + v : ''}" ${closedToday ? 'disabled' : ''} onclick="setTaskLevel('${t.key}', ${v})">${v}%</button>`).join('')}
+            <div class="mission-controls-wrap">
+              <div class="seg-bar">
+                ${[0, 40, 70, 100].map(v => `<button class="seg-btn ${pct === v ? 'active-' + v : ''}" ${closedToday ? 'disabled' : ''} onclick="setTaskLevel('${t.key}', ${v})">${v}%</button>`).join('')}
+              </div>
+              <button class="mission-finalize-btn" ${closedToday ? 'disabled' : ''} onclick="finalizeMission('${t.key}')">🔒 Finalizar Missão (${pct}%)</button>
             </div>
           </div>
         `;
@@ -3626,23 +3728,45 @@
       const lmTitle = (lm.id === 'book_summary' && state.books.artOfFocusDone)
         ? `Resumo prático de ${state.books.currentBook}`
         : lm.title;
-      html += `
-        <div class="mission-tile lightning-tile">
-          <div>
-            <div class="tile-head">
-              <div class="tile-title">⚡ Missão Relâmpago</div>
-              <span class="badge ${state.today.lightningDone ? 'emerald' : 'purple'}">${state.today.lightningDone ? 'Feita ✓' : 'Opcional'}</span>
+      const isLightningLocked = Boolean(state.today.lightningLocked);
+      if (isLightningLocked) {
+        html += `
+          <div class="mission-tile mission-finalized">
+            <div>
+              <div class="tile-head">
+                <div class="tile-title">⚡ Missão Relâmpago</div>
+                <span class="badge">🔒 Finalizada</span>
+              </div>
+              <div class="card-sub" style="margin-top:6px;">${lmTitle}</div>
             </div>
-            <div style="font-size:0.8rem; font-weight:700; color:#f3e8ff; margin:6px 0;">${lmTitle}</div>
-            <div class="card-sub">+${lm.xp} XP • +${lm.attrGain} ${attrLabel(lm.attr)} • Não afeta Streak</div>
+            <div class="mission-finalized-bar">
+              <span>✓ Concluída até 01h00</span>
+              <button class="btn btn-xs" onclick="copyLightningForValidation()">📋 Validar</button>
+            </div>
           </div>
-          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:auto;">
-            <button class="btn btn-xs ${state.today.lightningDone ? 'btn-primary' : ''}" ${closedToday ? 'disabled' : ''} onclick="toggleLightningTask()">${state.today.lightningDone ? '✓ Concluída' : 'Marcar Feita'}</button>
-            <button class="btn btn-xs btn-purple" onclick="copyLightningForValidation()">📋 Validar no Chat</button>
-            <button class="btn btn-xs" ${state.rerollRemaining <= 0 || closedToday ? 'disabled' : ''} onclick="rerollLightningMission()">🎲 (${state.rerollRemaining}/1)</button>
+        `;
+      } else {
+        html += `
+          <div class="mission-tile lightning-tile">
+            <div>
+              <div class="tile-head">
+                <div class="tile-title">⚡ Missão Relâmpago</div>
+                <span class="badge ${state.today.lightningDone ? 'emerald' : 'purple'}">${state.today.lightningDone ? 'Feita ✓' : 'Opcional'}</span>
+              </div>
+              <div style="font-size:0.8rem; font-weight:700; color:#f3e8ff; margin:6px 0;">${lmTitle}</div>
+              <div class="card-sub">+${lm.xp} XP • +${lm.attrGain} ${attrLabel(lm.attr)} • Não afeta Streak</div>
+            </div>
+            <div class="mission-controls-wrap">
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="btn btn-xs ${state.today.lightningDone ? 'btn-primary' : ''}" ${closedToday ? 'disabled' : ''} onclick="toggleLightningTask()">${state.today.lightningDone ? '✓ Concluída' : 'Marcar Feita'}</button>
+                <button class="btn btn-xs btn-purple" onclick="copyLightningForValidation()">📋 Validar no Chat</button>
+                <button class="btn btn-xs" ${state.rerollRemaining <= 0 || closedToday ? 'disabled' : ''} onclick="rerollLightningMission()">🎲 (${state.rerollRemaining}/1)</button>
+              </div>
+              ${state.today.lightningDone ? `<button class="mission-finalize-btn" ${closedToday ? 'disabled' : ''} onclick="finalizeLightningMission()">🔒 Finalizar Missão</button>` : ''}
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      }
 
       // 6º CARD: MISSÃO AGENDADA DO DIA
       const dueToday = state.scheduledMissions.filter(m => m.date === state.today.date);
@@ -3717,12 +3841,6 @@
           <div>
             <div class="mentor-hours-row"><span>${hrs.toFixed(1)}h / 100h</span><span>${pct.toFixed(0)}%</span></div>
             <div class="progress-track" style="margin-top:4px;"><div class="progress-fill" style="width:${pct}%"></div></div>
-          </div>
-          <div class="mentor-btn-row">
-            <button class="btn btn-xs" onclick="addMentorHours('${m.id}', -0.25)">-15m</button>
-            <button class="btn btn-xs" onclick="addMentorHours('${m.id}', 0.25)">+15m</button>
-            <button class="btn btn-xs" onclick="addMentorHours('${m.id}', 0.5)">+30m</button>
-            <button class="btn btn-xs btn-primary" onclick="addMentorHours('${m.id}', 1)">+1h</button>
           </div>
         `;
         grid.appendChild(card);
